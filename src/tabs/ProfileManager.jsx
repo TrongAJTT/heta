@@ -273,7 +273,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
             startIcon={<AddIcon />}
             onClick={() => setShowNewProfileInput(true)}
           >
-            Create New Profile
+            Create New
           </Button>
           <ProfileImportButton
             variant="outlined"

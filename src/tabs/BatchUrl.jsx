@@ -30,12 +30,33 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   // Load state from props
   useEffect(() => {
     if (currentState) {
+      const urls = currentState.generatedUrls || [];
+      const bs = currentState.batchSize || 8;
+      const opened = currentState.currentOpenIndex || 0;
       setUrlPattern(currentState.urlPattern || "");
       setStartId(currentState.startId || "");
       setEndId(currentState.endId || "");
-      setGeneratedUrls(currentState.generatedUrls || []);
-      setBatchSize(currentState.batchSize || 8);
-      setCurrentOpenIndex(currentState.currentOpenIndex || 0);
+      setGeneratedUrls(urls);
+      setBatchSize(bs);
+      setCurrentOpenIndex(opened);
+
+      // Reconstruct progress UI if there was prior progress
+      if (urls.length > 0 && opened > 0) {
+        const totalUrls = urls.length;
+        const totalBatches = Math.ceil(totalUrls / Math.max(1, bs));
+        const currentBatch = Math.min(
+          totalBatches,
+          Math.max(1, Math.ceil(opened / Math.max(1, bs)))
+        );
+        setProgress({
+          currentBatch,
+          totalBatches,
+          urlsOpened: opened,
+          totalUrls,
+          rangeStart: Math.max(1, opened - Math.max(1, bs) + 1),
+          rangeEnd: opened,
+        });
+      }
     }
   }, [currentState]);
 
@@ -79,18 +100,13 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
   const handleOpenAll = async () => {
     if (generatedUrls.length === 0) return;
-
-    // Warning for opening many tabs at once
-    if (generatedUrls.length > 50) {
-      if (
-        !confirm(
-          `You are about to open ${generatedUrls.length} tabs at once. This may slow down your browser. Continue?`
-        )
-      ) {
-        return;
-      }
+    if (
+      !confirm(
+        `You are about to open ${generatedUrls.length} tabs. This may impact browser performance. Continue?`
+      )
+    ) {
+      return;
     }
-
     setProgress({ message: "Opening all links..." });
     await openAllUrls(generatedUrls);
     setProgress({ message: `Opened ${generatedUrls.length} links` });

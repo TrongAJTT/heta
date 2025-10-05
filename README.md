@@ -108,9 +108,9 @@ Xem [📚 DOCS_INDEX.md](./DOCS_INDEX.md) để navigate qua tất cả tài li�
 heta/
 ├── public/
 │   ├── manifest.json          # Extension manifest
-│   ├── icon16.svg             # Icon 16x16
-│   ├── icon48.svg             # Icon 48x48
-│   └── icon128.svg            # Icon 128x128
+│   ├── icon16.png             # Icon 16x16
+│   ├── icon48.png             # Icon 48x48
+│   └── icon128.png            # Icon 128x128
 ├── src/
 │   ├── tabs/                  # Tab/screens (high-level)
 │   │   ├── BatchUrl.jsx       # Batch URL tab (re-export)

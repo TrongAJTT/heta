@@ -34,7 +34,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>
-          <img src="/icon16.svg" alt="Heta" className="app-logo" />
+          <img src="/icon16.png" alt="Heta" className="app-logo" />
           Heta - Tab Helper
         </h1>
       </header>

@@ -12,23 +12,26 @@ const TabChecklist = ({ tabs, selectedIds, onToggleOne, maxHeight = 150 }) => {
     <Box sx={{ maxHeight, overflow: "auto", p: 1 }}>
       <Stack>
         {tabs.map((t) => (
-          <FormControlLabel
-            key={t.id}
-            control={
-              <Checkbox
-                checked={selectedIds.has(t.id)}
-                onChange={(e) => onToggleOne(t.id, e.target.checked)}
-              />
-            }
-            label={
-              <Stack>
-                <Typography variant="body2">{t.title}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {t.url}
-                </Typography>
-              </Stack>
-            }
-          />
+          <Box sx={{ maxWidth: 600, width: "100%" }}>
+            <FormControlLabel
+              key={t.id}
+              control={
+                <Checkbox
+                  checked={selectedIds.has(t.id)}
+                  onChange={(e) => onToggleOne(t.id, e.target.checked)}
+                />
+              }
+              label={
+                <Stack>
+                  <Typography variant="body2">{t.title}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t.url}
+                  </Typography>
+                </Stack>
+              }
+              sx={{ width: "100%", maxWidth: 600 }}
+            />
+          </Box>
         ))}
         {tabs.length === 0 && (
           <Typography variant="body2" color="text.secondary" align="center">

@@ -9,9 +9,9 @@ heta/
 │
 ├── public/                      # Static assets
 │   ├── manifest.json           # Chrome Extension manifest (Manifest V3)
-│   ├── icon16.svg             # Extension icon 16x16
-│   ├── icon48.svg             # Extension icon 48x48
-│   └── icon128.svg            # Extension icon 128x128
+│   ├── icon16.png             # Extension icon 16x16
+│   ├── icon48.png             # Extension icon 48x48
+│   └── icon128.png            # Extension icon 128x128
 │
 ├── src/                        # Source code
 │   ├── components/            # React components

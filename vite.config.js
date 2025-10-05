@@ -15,7 +15,7 @@ export default defineConfig({
           resolve(__dirname, "dist/manifest.json")
         );
         // Copy icons to dist
-        const icons = ["icon16.svg", "icon48.svg", "icon128.svg"];
+        const icons = ["icon16.png", "icon48.png", "icon128.png"];
         icons.forEach((icon) => {
           copyFileSync(
             resolve(__dirname, `public/${icon}`),

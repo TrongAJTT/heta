@@ -63,7 +63,7 @@ const ProfileImportButton = ({
             onClick={triggerPicker}
             disabled={isBusy}
           >
-            Import Profile
+            Import
           </Button>
         </span>
       </Tooltip>

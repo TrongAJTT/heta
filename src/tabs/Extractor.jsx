@@ -5,10 +5,11 @@ import {
   Stack,
   TextField,
   Typography,
-  Checkbox,
-  FormControlLabel,
   IconButton,
+  Tooltip,
 } from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DescriptionIcon from "@mui/icons-material/Description";
 import TabChecklist from "../components/TabChecklist";
 import { queryCurrentWindowHttpTabs, downloadTextFile } from "../utils/tabs";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
@@ -158,7 +159,7 @@ const Extractor = () => {
               tabs={filteredTabs}
               selectedIds={selectedIds}
               onToggleOne={toggleOne}
-              maxHeight={150}
+              maxHeight={400}
             />
           )}
         </Box>
@@ -171,20 +172,30 @@ const Extractor = () => {
             InputProps={{ readOnly: true }}
             sx={{ width: 100 }}
           />
-          <Button
-            variant="contained"
-            onClick={handleCopy}
-            disabled={selectedUrls.length === 0}
-          >
-            Copy to Clipboard
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleDownload}
-            disabled={selectedUrls.length === 0}
-          >
-            Download .txt
-          </Button>
+          <Tooltip title="Copy selected URLs to clipboard">
+            <span>
+              <Button
+                variant="contained"
+                onClick={handleCopy}
+                disabled={selectedUrls.length === 0}
+                startIcon={<ContentCopyIcon />}
+              >
+                Copy
+              </Button>
+            </span>
+          </Tooltip>
+          <Tooltip title="Export selected URLs to .txt file">
+            <span>
+              <Button
+                variant="outlined"
+                onClick={handleDownload}
+                disabled={selectedUrls.length === 0}
+                startIcon={<DescriptionIcon />}
+              >
+                Export
+              </Button>
+            </span>
+          </Tooltip>
         </Stack>
       </Stack>
     </Box>
