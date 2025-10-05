@@ -43,6 +43,62 @@ export const isValidUrlPattern = (pattern) => {
 };
 
 /**
+ * Calculate batch information
+ * @param {number} totalUrls - Total number of URLs
+ * @param {number} currentIndex - Current index position
+ * @param {number} batchSize - Size of each batch
+ * @returns {Object} - Batch information
+ */
+export const calculateBatchInfo = (totalUrls, currentIndex, batchSize) => {
+  const totalBatches = Math.ceil(totalUrls / batchSize);
+  const currentBatch = Math.floor(currentIndex / batchSize) + 1;
+  const urlsInNextBatch = Math.min(batchSize, totalUrls - currentIndex);
+  const isComplete = currentIndex >= totalUrls;
+
+  return {
+    totalBatches,
+    currentBatch,
+    urlsInNextBatch,
+    isComplete,
+    progress: totalUrls > 0 ? (currentIndex / totalUrls) * 100 : 0,
+  };
+};
+
+/**
+ * Open a single batch of URLs
+ * @param {Array<string>} urls - All URLs
+ * @param {number} startIndex - Starting index for this batch
+ * @param {number} batchSize - Number of URLs to open in this batch
+ * @returns {Promise<{newIndex: number, urlsOpened: Array<string>, isComplete: boolean}>}
+ */
+export const openSingleBatch = async (urls, startIndex, batchSize) => {
+  const endIndex = Math.min(startIndex + batchSize, urls.length);
+  const batchUrls = urls.slice(startIndex, endIndex);
+
+  // Open URLs in this batch
+  for (const url of batchUrls) {
+    try {
+      // Check if chrome APIs are available (extension context)
+      if (typeof chrome !== "undefined" && chrome.tabs) {
+        await chrome.tabs.create({ url, active: false });
+      } else {
+        // Fallback for development mode - open in new window
+        window.open(url, "_blank");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay between tabs
+    } catch (error) {
+      console.error("Error opening URL:", url, error);
+    }
+  }
+
+  return {
+    newIndex: endIndex,
+    urlsOpened: batchUrls,
+    isComplete: endIndex >= urls.length,
+  };
+};
+
+/**
  * Open URLs in batches
  * @param {Array<string>} urls - URLs to open
  * @param {number} batchSize - Number of URLs to open at once
@@ -116,4 +172,6 @@ export default {
   isValidUrlPattern,
   openUrlsInBatches,
   openAllUrls,
+  openSingleBatch,
+  calculateBatchInfo,
 };

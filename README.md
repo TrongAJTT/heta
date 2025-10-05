@@ -1,4 +1,4 @@
-# Heta - Batch URL Manager Extension
+# <img src="public/icon48.svg" alt="Heta" width="24" height="24" style="vertical-align: middle;"> Heta - Tab Helper Extension
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
@@ -10,21 +10,20 @@ Browser extension để quản lý và mở batch URLs với hỗ trợ profiles
 
 ## ✨ Tính năng
 
-### 📋 Batch URL Generator
+### Batch URL Generator
 
 - Tạo nhiều URLs từ pattern với `{id}` placemarkdownholder
 - Hỗ trợ Start ID và End ID linh hoạt
 - Validate input và hiển thị errors rõ ràng
-- Hiển thị tất cả URLs đã tạo trong textarea
+- Hiển thị tất cả URLs đã tạo trong textarea, có thể chỉnh sửa trực tiếp và cuộn bằng con lăn
 
-### 🚀 Batch Opening
+### Batch Opening
 
 - **Mở Tất Cả**: Mở toàn bộ URLs cùng lúc
-- **Mở Theo Batch**: Mở URLs theo nhóm với batch size tùy chỉnh
-- Progress tracking trực quan với progress bar
-- Thống kê chi tiết: batch hiện tại, số links đã mở
+- **Open Each**: Mở URLs theo từng đợt (batch) với batch size tùy chỉnh, mỗi lần bấm mở một batch
+- Progress hiển thị tối giản: “Opened batch X of Y (a-b of N)” + thanh tiến trình mảnh
 
-### 👤 Profile Management
+### Profile Management
 
 - Tạo và lưu nhiều profiles
 - Mỗi profile lưu: URL pattern, Start/End ID, generated URLs, batch size
@@ -32,8 +31,9 @@ Browser extension để quản lý và mở batch URLs với hỗ trợ profiles
 - Đổi tên và xóa profiles
 - Hiển thị profile đang active
 - Auto-save state hiện tại
+- Import/Export profile (JSON). Hỗ trợ Batch Import/Export qua menu (...)
 
-### 💾 Local Storage
+### Local Storage
 
 - Sử dụng Chrome Storage API
 - Lưu trữ profiles và state local
@@ -64,7 +64,7 @@ Build sẽ tạo thư mục `dist` chứa extension production-ready.
 3. Click **Load unpacked**
 4. Chọn thư mục `dist`
 
-Extension sẽ xuất hiện với icon **H** màu gradient tím.
+Extension sẽ xuất hiện với icon SVG của app.
 
 ## 🎯 Sử dụng
 
@@ -74,7 +74,7 @@ Xem [📚 DOCS_INDEX.md](./DOCS_INDEX.md) để navigate qua tất cả tài li�
 
 **[📚 Complete Documentation Index](./DOCS_INDEX.md)** - Tất cả tài liệu ở một nơi
 
-### � Core Documentation
+### Core Documentation
 
 - **[🚀 QUICKSTART.md](./QUICKSTART.md)** - Bắt đầu trong 5 phút
 - **[📘 USAGE.md](./USAGE.md)** - Hướng dẫn chi tiết
@@ -84,12 +84,12 @@ Xem [📚 DOCS_INDEX.md](./DOCS_INDEX.md) để navigate qua tất cả tài li�
 ### 🔧 Technical Documentation
 
 - **[🏗️ ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture
-- **[� BUILD.md](./BUILD.md)** - Build & deployment guide
+- **[BUILD.md](./BUILD.md)** - Build & deployment guide
 - **[🧪 TEST_CASES.md](./TEST_CASES.md)** - Test cases đầy đủ
 
 ### 📝 Project Info
 
-- **[� PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Project summary
+- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Project summary
 - **[📝 CHANGELOG.md](./CHANGELOG.md)** - Version history
 - **[🤝 CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
 
@@ -108,25 +108,29 @@ Xem [📚 DOCS_INDEX.md](./DOCS_INDEX.md) để navigate qua tất cả tài li�
 heta/
 ├── public/
 │   ├── manifest.json          # Extension manifest
-│   ├── icon16.svg            # Icon 16x16
-│   ├── icon48.svg            # Icon 48x48
-│   └── icon128.svg           # Icon 128x128
+│   ├── icon16.svg             # Icon 16x16
+│   ├── icon48.svg             # Icon 48x48
+│   └── icon128.svg            # Icon 128x128
 ├── src/
-│   ├── components/
-│   │   ├── BatchUrl.jsx      # Batch URL component
-│   │   └── ProfileManager.jsx # Profile management
+│   ├── tabs/                  # Tab/screens (high-level)
+│   │   ├── BatchUrl.jsx       # Batch URL tab (re-export)
+│   │   └── ProfileManager.jsx # Profiles tab (re-export)
+│   ├── components/            # Reusable UI pieces
+│   │   ├── ProfileImportButton.jsx
+│   │   └── ProfileBulkActionsMenu.jsx
 │   ├── utils/
-│   │   ├── storage.js        # Chrome Storage wrapper
-│   │   └── urlUtils.js       # URL utilities
-│   ├── App.jsx               # Main app component
-│   ├── App.css              # Styles
-│   ├── main.jsx             # Entry point
-│   └── index.css            # Global styles
-├── index.html               # HTML template
-├── vite.config.js          # Vite configuration
+│   │   ├── storage.js         # Chrome Storage wrapper
+│   │   ├── urlUtils.js        # URL utilities (batch open)
+│   │   └── profileIO.js       # Import/Export helpers
+│   ├── App.jsx                # Main app component
+│   ├── App.css                # Styles
+│   ├── main.jsx               # Entry point
+│   └── index.css              # Global styles
+├── index.html                 # HTML template
+├── vite.config.js             # Vite configuration
 ├── package.json
 ├── README.md
-└── USAGE.md                # Detailed usage guide
+└── USAGE.md                   # Detailed usage guide
 ```
 
 ## 🔧 Development
@@ -161,7 +165,9 @@ npm run build
 ✅ Generate batch URLs từ pattern với {id}
 ✅ Validate URL pattern và IDs
 ✅ Mở tất cả URLs hoặc theo batch size
-✅ Progress tracking với progress bar
+✅ Progress tracking tối giản + thanh tiến trình mảnh
+✅ Textarea batch links có thể chỉnh sửa và cuộn bằng chuột
+✅ Batch Import/Export profiles qua menu (...)
 ✅ Profile system với CRUD operations
 ✅ Auto-save current state
 ✅ Chrome Storage integration
@@ -183,4 +189,4 @@ MIT
 
 ## 👨‍💻 Author
 
-Developed with ❤️ using GitHub Copilot
+Developed with ❤️

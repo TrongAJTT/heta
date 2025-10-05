@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Heta - Batch URL Manager",
+  "name": "Heta - Tab Helper",
   "version": "1.0.0",
   "description": "Batch URL generator and manager with profile support",
   "permissions": ["storage", "tabs"],

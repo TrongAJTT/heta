@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import BatchUrl from "./components/BatchUrl";
-import ProfileManager from "./components/ProfileManager";
+import BatchUrl from "./tabs/BatchUrl";
+import ProfileManager from "./tabs/ProfileManager";
 import { getCurrentState, saveCurrentState } from "./utils/storage";
 import "./App.css";
 
@@ -32,7 +32,10 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🔗 Heta - Batch URL Manager</h1>
+        <h1>
+          <img src="/icon16.svg" alt="Heta" className="app-logo" />
+          Heta - Tab Helper
+        </h1>
       </header>
 
       <div className="tabs">
@@ -40,13 +43,13 @@ function App() {
           className={`tab ${activeTab === "batch-url" ? "active" : ""}`}
           onClick={() => setActiveTab("batch-url")}
         >
-          📋 Batch URL
+          Batch URL
         </button>
         <button
           className={`tab ${activeTab === "profiles" ? "active" : ""}`}
           onClick={() => setActiveTab("profiles")}
         >
-          👤 Profiles
+          Profiles
         </button>
       </div>
 
