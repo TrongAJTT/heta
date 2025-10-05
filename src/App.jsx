@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import BatchUrl from "./tabs/BatchUrl";
 import ProfileManager from "./tabs/ProfileManager";
+import Extractor from "./tabs/Extractor";
 import { getCurrentState, saveCurrentState } from "./utils/storage";
 import "./App.css";
 
@@ -51,6 +52,12 @@ function App() {
         >
           Profiles
         </button>
+        <button
+          className={`tab ${activeTab === "extractor" ? "active" : ""}`}
+          onClick={() => setActiveTab("extractor")}
+        >
+          Extractor
+        </button>
       </div>
 
       <div className="tab-content">
@@ -66,6 +73,7 @@ function App() {
             onLoadProfile={handleLoadProfile}
           />
         )}
+        {activeTab === "extractor" && <Extractor />}
       </div>
     </div>
   );

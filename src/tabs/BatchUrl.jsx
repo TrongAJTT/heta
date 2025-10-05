@@ -6,7 +6,6 @@ import {
   IconButton,
   Typography,
   Stack,
-  Paper,
   Divider,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -196,177 +195,161 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto", mt: 2 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Stack spacing={2}>
-          <Typography variant="subtitle1">
-            URL Pattern (use {"{id}"} as placeholder):
-          </Typography>
-          <TextField
-            label="URL Pattern"
-            variant="outlined"
-            value={urlPattern}
-            onChange={(e) => setUrlPattern(e.target.value)}
-            placeholder="https://example.com/page/{id}"
-            fullWidth
-            size="small"
-          />
+    <Stack spacing={2}>
+      <Typography variant="subtitle1">
+        URL Pattern (use {"{id}"} as placeholder):
+      </Typography>
+      <TextField
+        label="URL Pattern"
+        variant="outlined"
+        value={urlPattern}
+        onChange={(e) => setUrlPattern(e.target.value)}
+        placeholder="https://example.com/page/{id}"
+        fullWidth
+        size="small"
+      />
 
-          <Stack direction="row" spacing={1} alignItems="flex-end">
-            <TextField
-              label="Start ID"
-              type="number"
-              value={startId}
-              onChange={(e) => setStartId(e.target.value)}
-              placeholder="1"
+      <Stack direction="row" spacing={1} alignItems="flex-end">
+        <TextField
+          label="Start ID"
+          type="number"
+          value={startId}
+          onChange={(e) => setStartId(e.target.value)}
+          placeholder="1"
+          size="small"
+          sx={{ flex: 1 }}
+        />
+        <IconButton
+          color="primary"
+          size="large"
+          sx={{ mb: 0.2 }}
+          title="Shift both IDs to the right"
+          onClick={() => {
+            const s = parseInt(startId);
+            const e = parseInt(endId);
+            if (!isNaN(s) && !isNaN(e)) {
+              const delta = e - s;
+              setStartId((s + delta + 1).toString());
+              setEndId((e + delta + 1).toString());
+            }
+          }}
+        >
+          <ArrowForwardIcon fontSize="inherit" />
+        </IconButton>
+        <TextField
+          label="End ID"
+          type="number"
+          value={endId}
+          onChange={(e) => setEndId(e.target.value)}
+          placeholder="10"
+          size="small"
+          sx={{ flex: 1 }}
+        />
+      </Stack>
+
+      <Button variant="contained" color="primary" onClick={handleGenerateUrls}>
+        Generate Links
+      </Button>
+
+      {error && (
+        <Typography color="error" variant="body2">
+          {error}
+        </Typography>
+      )}
+
+      {generatedUrls.length > 0 && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            mb={1}
+          >
+            <Typography variant="subtitle1">
+              Batch Links ({generatedUrls.length} links)
+            </Typography>
+            <Button
+              variant="outlined"
+              color="secondary"
               size="small"
-              sx={{ flex: 1 }}
-            />
-            <IconButton
-              color="primary"
-              size="large"
-              sx={{ mb: 0.2 }}
-              title="Shift both IDs to the right"
-              onClick={() => {
-                const s = parseInt(startId);
-                const e = parseInt(endId);
-                if (!isNaN(s) && !isNaN(e)) {
-                  const delta = e - s;
-                  setStartId((s + delta + 1).toString());
-                  setEndId((e + delta + 1).toString());
-                }
-              }}
+              onClick={handleClearUrls}
             >
-              <ArrowForwardIcon fontSize="inherit" />
-            </IconButton>
+              Clear
+            </Button>
+          </Stack>
+          <TextField
+            multiline
+            minRows={3}
+            value={generatedUrls.join("\n")}
+            onChange={(e) => handleGeneratedUrlsChange(e.target.value)}
+            fullWidth
+            sx={{
+              mb: 2,
+              "& .MuiInputBase-inputMultiline": {
+                maxHeight: 100,
+                overflow: "auto",
+              },
+            }}
+          />
+          <Stack direction="row" spacing={2} alignItems="center">
             <TextField
-              label="End ID"
+              label="Batch Size"
               type="number"
-              value={endId}
-              onChange={(e) => setEndId(e.target.value)}
-              placeholder="10"
+              value={batchSize}
+              onChange={(e) =>
+                setBatchSize(Math.max(1, parseInt(e.target.value) || 1))
+              }
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ width: 120 }}
+              inputProps={{ min: 1 }}
             />
+            <Button variant="contained" color="success" onClick={handleOpenAll}>
+              Open All
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenEach}
+            >
+              Open Each
+            </Button>
           </Stack>
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleGenerateUrls}
-          >
-            Generate Links
-          </Button>
-
-          {error && (
-            <Typography color="error" variant="body2">
-              {error}
-            </Typography>
-          )}
-
-          {generatedUrls.length > 0 && (
-            <>
-              <Divider sx={{ my: 2 }} />
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                mb={1}
-              >
-                <Typography variant="subtitle1">
-                  Batch Links ({generatedUrls.length} links)
-                </Typography>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={handleClearUrls}
-                >
-                  Clear
-                </Button>
-              </Stack>
-              <TextField
-                multiline
-                minRows={3}
-                value={generatedUrls.join("\n")}
-                onChange={(e) => handleGeneratedUrlsChange(e.target.value)}
-                fullWidth
+          {progress && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Opened batch {progress.currentBatch} of {progress.totalBatches}{" "}
+                (
+                {progress.rangeStart ||
+                  Math.max(1, progress.urlsOpened - batchSize + 1)}
+                -{progress.rangeEnd || progress.urlsOpened} of{" "}
+                {progress.totalUrls})
+              </Typography>
+              <Box
                 sx={{
-                  mb: 2,
-                  "& .MuiInputBase-inputMultiline": {
-                    maxHeight: 100,
-                    overflow: "auto",
-                  },
+                  width: "100%",
+                  height: 6,
+                  bgcolor: "#eee",
+                  borderRadius: 2,
+                  overflow: "hidden",
                 }}
-              />
-              <Stack direction="row" spacing={2} alignItems="center">
-                <TextField
-                  label="Batch Size"
-                  type="number"
-                  value={batchSize}
-                  onChange={(e) =>
-                    setBatchSize(Math.max(1, parseInt(e.target.value) || 1))
-                  }
-                  size="small"
-                  sx={{ width: 120 }}
-                  inputProps={{ min: 1 }}
+              >
+                <Box
+                  sx={{
+                    width: `${
+                      (progress.urlsOpened / progress.totalUrls) * 100
+                    }%`,
+                    height: "100%",
+                    bgcolor: "primary.main",
+                  }}
                 />
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={handleOpenAll}
-                >
-                  Open All
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleOpenEach}
-                >
-                  Open Each
-                </Button>
-              </Stack>
-
-              {progress && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 1 }}
-                  >
-                    Opened batch {progress.currentBatch} of{" "}
-                    {progress.totalBatches} (
-                    {progress.rangeStart ||
-                      Math.max(1, progress.urlsOpened - batchSize + 1)}
-                    -{progress.rangeEnd || progress.urlsOpened} of{" "}
-                    {progress.totalUrls})
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: "100%",
-                      height: 6,
-                      bgcolor: "#eee",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: `${
-                          (progress.urlsOpened / progress.totalUrls) * 100
-                        }%`,
-                        height: "100%",
-                        bgcolor: "primary.main",
-                      }}
-                    />
-                  </Box>
-                </Box>
-              )}
-            </>
+              </Box>
+            </Box>
           )}
-        </Stack>
-      </Paper>
-    </Box>
+        </>
+      )}
+    </Stack>
   );
 };
 

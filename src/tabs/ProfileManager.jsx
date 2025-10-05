@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box,
   Button,
   IconButton,
   Typography,
   Stack,
-  Paper,
   TextField,
   Chip,
   Tooltip,
+  Paper,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -126,223 +125,197 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto", mt: 2 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Stack spacing={2}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography variant="h6">Profile Manager</Typography>
-            <Stack direction="row" spacing={1}>
-              {activeProfileId && (
-                <>
-                  <Tooltip title="Save current profile">
-                    <IconButton
-                      color="success"
-                      size="small"
-                      onClick={handleSaveCurrentProfile}
-                    >
-                      <SaveIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Export profile as JSON">
-                    <IconButton
-                      color="primary"
-                      size="small"
-                      onClick={() => {
-                        const profile = profiles.find(
-                          (p) => p.id === activeProfileId
-                        );
-                        if (profile) {
-                          const dataStr =
-                            "data:text/json;charset=utf-8," +
-                            encodeURIComponent(
-                              JSON.stringify(profile, null, 2)
-                            );
-                          const downloadAnchorNode =
-                            document.createElement("a");
-                          downloadAnchorNode.setAttribute("href", dataStr);
-                          downloadAnchorNode.setAttribute(
-                            "download",
-                            `${profile.name || "profile"}.json`
-                          );
-                          document.body.appendChild(downloadAnchorNode);
-                          downloadAnchorNode.click();
-                          downloadAnchorNode.remove();
-                        }
-                      }}
-                    >
-                      <DownloadIcon />
-                    </IconButton>
-                  </Tooltip>
-                </>
-              )}
-              <ProfileBulkActionsMenu
-                onChanged={async () => {
-                  await loadProfiles();
-                  await loadActiveProfile();
-                }}
-              />
-            </Stack>
-          </Stack>
-
-          <Box>
-            {profiles.length === 0 ? (
-              <Typography color="text.secondary" align="center">
-                No profiles yet.
-              </Typography>
-            ) : (
-              <Stack spacing={1}>
-                {profiles.map((profile) => (
-                  <Paper
-                    key={profile.id}
-                    variant={
-                      activeProfileId === profile.id ? "outlined" : "elevation"
+    <Stack spacing={2}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography variant="h6">Profile Manager</Typography>
+        <Stack direction="row" spacing={1}>
+          {activeProfileId && (
+            <>
+              <Tooltip title="Save current profile">
+                <IconButton
+                  color="success"
+                  size="small"
+                  onClick={handleSaveCurrentProfile}
+                >
+                  <SaveIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Export profile as JSON">
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={() => {
+                    const profile = profiles.find(
+                      (p) => p.id === activeProfileId
+                    );
+                    if (profile) {
+                      const dataStr =
+                        "data:text/json;charset=utf-8," +
+                        encodeURIComponent(JSON.stringify(profile, null, 2));
+                      const downloadAnchorNode = document.createElement("a");
+                      downloadAnchorNode.setAttribute("href", dataStr);
+                      downloadAnchorNode.setAttribute(
+                        "download",
+                        `${profile.name || "profile"}.json`
+                      );
+                      document.body.appendChild(downloadAnchorNode);
+                      downloadAnchorNode.click();
+                      downloadAnchorNode.remove();
                     }
-                    sx={{
-                      p: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      borderColor:
-                        activeProfileId === profile.id
-                          ? "primary.main"
-                          : undefined,
-                      bgcolor:
-                        activeProfileId === profile.id
-                          ? "primary.lighter"
-                          : undefined,
-                    }}
-                  >
-                    <Stack flex={1}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography variant="subtitle1">
-                          {profile.name}
-                        </Typography>
-                        {activeProfileId === profile.id && (
-                          <Chip label="Active" color="primary" size="small" />
-                        )}
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary">
-                        Created:{" "}
-                        {new Date(profile.createdAt).toLocaleDateString(
+                  }}
+                >
+                  <DownloadIcon />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+          <ProfileBulkActionsMenu
+            onChanged={async () => {
+              await loadProfiles();
+              await loadActiveProfile();
+            }}
+          />
+        </Stack>
+      </Stack>
+
+      <div>
+        {profiles.length === 0 ? (
+          <Typography color="text.secondary" align="center">
+            No profiles yet.
+          </Typography>
+        ) : (
+          <Stack spacing={1}>
+            {profiles.map((profile) => (
+              <Paper
+                key={profile.id}
+                variant={
+                  activeProfileId === profile.id ? "outlined" : "elevation"
+                }
+                sx={{
+                  p: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  borderColor:
+                    activeProfileId === profile.id ? "primary.main" : undefined,
+                  bgcolor:
+                    activeProfileId === profile.id
+                      ? "primary.lighter"
+                      : undefined,
+                }}
+              >
+                <Stack flex={1}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography variant="subtitle1">{profile.name}</Typography>
+                    {activeProfileId === profile.id && (
+                      <Chip label="Active" color="primary" size="small" />
+                    )}
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    Created:{" "}
+                    {new Date(profile.createdAt).toLocaleDateString("en-US")}
+                    {profile.updatedAt && (
+                      <>
+                        {" "}
+                        | Updated:{" "}
+                        {new Date(profile.updatedAt).toLocaleDateString(
                           "en-US"
                         )}
-                        {profile.updatedAt && (
-                          <>
-                            {" "}
-                            | Updated:{" "}
-                            {new Date(profile.updatedAt).toLocaleDateString(
-                              "en-US"
-                            )}
-                          </>
-                        )}
-                      </Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1}>
-                      <Tooltip title="Load">
-                        <span>
-                          <IconButton
-                            color="primary"
-                            size="small"
-                            onClick={() => handleLoadProfile(profile.id)}
-                            disabled={activeProfileId === profile.id}
-                          >
-                            <DownloadIcon />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Rename">
-                        <IconButton
-                          color="secondary"
-                          size="small"
-                          onClick={() => {
-                            const newName = prompt(
-                              "Enter new name:",
-                              profile.name
-                            );
-                            if (newName)
-                              handleRenameProfile(profile.id, newName);
-                          }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          color="error"
-                          size="small"
-                          onClick={() => handleDeleteProfile(profile.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </Paper>
-                ))}
-              </Stack>
-            )}
-          </Box>
+                      </>
+                    )}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <Tooltip title="Load">
+                    <span>
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={() => handleLoadProfile(profile.id)}
+                        disabled={activeProfileId === profile.id}
+                      >
+                        <DownloadIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Rename">
+                    <IconButton
+                      color="secondary"
+                      size="small"
+                      onClick={() => {
+                        const newName = prompt("Enter new name:", profile.name);
+                        if (newName) handleRenameProfile(profile.id, newName);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteProfile(profile.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </Paper>
+            ))}
+          </Stack>
+        )}
+      </div>
 
-          {!showNewProfileInput ? (
-            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => setShowNewProfileInput(true)}
-              >
-                Create New Profile
-              </Button>
-              <ProfileImportButton
-                variant="outlined"
-                onImported={async () => {
-                  await loadProfiles();
-                  await loadActiveProfile();
-                }}
-              />
-            </Stack>
-          ) : (
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-              sx={{ mt: 2 }}
-            >
-              <TextField
-                value={newProfileName}
-                onChange={(e) => setNewProfileName(e.target.value)}
-                placeholder="Profile name..."
-                size="small"
-                autoFocus
-                onKeyPress={(e) => e.key === "Enter" && handleCreateProfile()}
-                sx={{ flex: 1 }}
-              />
-              <Button
-                variant="contained"
-                color="success"
-                size="small"
-                onClick={handleCreateProfile}
-              >
-                Create
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="small"
-                onClick={() => {
-                  setShowNewProfileInput(false);
-                  setNewProfileName("");
-                }}
-              >
-                Cancel
-              </Button>
-            </Stack>
-          )}
+      {!showNewProfileInput ? (
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setShowNewProfileInput(true)}
+          >
+            Create New Profile
+          </Button>
+          <ProfileImportButton
+            variant="outlined"
+            onImported={async () => {
+              await loadProfiles();
+              await loadActiveProfile();
+            }}
+          />
         </Stack>
-      </Paper>
-    </Box>
+      ) : (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2 }}>
+          <TextField
+            value={newProfileName}
+            onChange={(e) => setNewProfileName(e.target.value)}
+            placeholder="Profile name..."
+            size="small"
+            autoFocus
+            onKeyPress={(e) => e.key === "Enter" && handleCreateProfile()}
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            onClick={handleCreateProfile}
+          >
+            Create
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={() => {
+              setShowNewProfileInput(false);
+              setNewProfileName("");
+            }}
+          >
+            Cancel
+          </Button>
+        </Stack>
+      )}
+    </Stack>
   );
 };
 
