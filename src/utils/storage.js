@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   PROFILES: "profiles",
   ACTIVE_PROFILE: "activeProfile",
   CURRENT_STATE: "currentState",
+  ACTIVE_TAB: "activeTab",
 };
 
 /**
@@ -154,6 +155,23 @@ export const saveCurrentState = async (state) => {
   return await saveToStorage(STORAGE_KEYS.CURRENT_STATE, state);
 };
 
+/**
+ * Get active tab
+ * @returns {Promise<string|null>} - Active tab name
+ */
+export const getActiveTab = async () => {
+  return await getFromStorage(STORAGE_KEYS.ACTIVE_TAB);
+};
+
+/**
+ * Save active tab
+ * @param {string} tabName - Tab name
+ * @returns {Promise<boolean>} - Success status
+ */
+export const saveActiveTab = async (tabName) => {
+  return await saveToStorage(STORAGE_KEYS.ACTIVE_TAB, tabName);
+};
+
 export default {
   getFromStorage,
   saveToStorage,
@@ -165,5 +183,7 @@ export default {
   setActiveProfileId,
   getCurrentState,
   saveCurrentState,
+  getActiveTab,
+  saveActiveTab,
   STORAGE_KEYS,
 };

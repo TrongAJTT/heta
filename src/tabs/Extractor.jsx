@@ -12,16 +12,26 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DescriptionIcon from "@mui/icons-material/Description";
 import TabChecklist from "../components/TabChecklist";
 import { queryCurrentWindowHttpTabs, downloadTextFile } from "../utils/tabs";
+import { ExportFormatProcessor } from "../utils/exportFormatProcessor";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InfoIcon from "@mui/icons-material/Info";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 
 // Data access and file operations are moved to utils/tabs.js
 
 const Extractor = () => {
   const [tabs, setTabs] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [expanded, setExpanded] = useState(true);
   const [filterText, setFilterText] = useState("");
+  const [exportFormat, setExportFormat] = useState("<url>");
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+  const [exportFormatExpanded, setExportFormatExpanded] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -57,6 +67,16 @@ const Extractor = () => {
     [tabs, selectedIds]
   );
 
+  const selectedTabs = useMemo(
+    () => tabs.filter((t) => selectedIds.has(t.id)).filter((t) => t.url),
+    [tabs, selectedIds]
+  );
+
+  const formattedExportData = useMemo(
+    () => ExportFormatProcessor.process(exportFormat, selectedTabs),
+    [selectedTabs, exportFormat]
+  );
+
   const toggleAll = (checked) => {
     setSelectedIds(checked ? new Set(tabs.map((t) => t.id)) : new Set());
   };
@@ -71,7 +91,7 @@ const Extractor = () => {
   };
 
   const handleCopy = async () => {
-    const text = selectedUrls.join("\n");
+    const text = formattedExportData.join("\n");
     try {
       await navigator.clipboard.writeText(text);
     } catch (e) {
@@ -81,124 +101,311 @@ const Extractor = () => {
   };
 
   const handleDownload = () => {
-    const text = selectedUrls.join("\n");
+    const text = formattedExportData.join("\n");
     downloadTextFile(text, "tabs.txt");
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto" }}>
-      <Stack spacing={2}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="h6" sx={{ flex: 1 }}>
-            Tab Extractor
-          </Typography>
-          <TextField
-            value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-            size="small"
-            placeholder="Filter URLs..."
-            sx={{ width: 220 }}
-          />
-        </Stack>
+    <div className="fixed-height-container">
+      <div className="scrollable-content">
+        <Box
+          sx={{
+            maxWidth: 600,
+            mx: "auto",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Stack spacing={2} sx={{ height: "100%" }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="h6" sx={{ flex: 1 }}>
+                Tab Extractor
+              </Typography>
+              <TextField
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                size="small"
+                placeholder="Filter URLs..."
+                sx={{ width: 220 }}
+              />
+            </Stack>
 
-        <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
-          <Box
-            onClick={() => setExpanded((v) => !v)}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              p: 1,
-              cursor: "pointer",
-              userSelect: "none",
-              bgcolor: "#fafafa",
-              borderBottom: expanded ? "1px solid #e0e0e0" : "none",
-            }}
-          >
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={allSelectedVisible}
-              onClick={(e) => {
-                e.stopPropagation();
-                const visibleIds = new Set(filteredTabs.map((t) => t.id));
-                setSelectedIds((prev) => new Set([...prev, ...visibleIds]));
+            <Box
+              sx={{
+                border: "1px solid #e0e0e0",
+                borderRadius: 1,
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              Select All
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={!anySelectedVisible}
-              onClick={(e) => {
-                e.stopPropagation();
-                const visibleIds = new Set(filteredTabs.map((t) => t.id));
-                setSelectedIds((prev) => {
-                  const next = new Set(prev);
-                  visibleIds.forEach((id) => next.delete(id));
-                  return next;
-                });
-              }}
-            >
-              Clear
-            </Button>
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded((v) => !v);
-              }}
-              sx={{ ml: "auto" }}
-            >
-              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
-          </Box>
-          {expanded && (
-            <TabChecklist
-              tabs={filteredTabs}
-              selectedIds={selectedIds}
-              onToggleOne={toggleOne}
-              maxHeight={400}
-            />
-          )}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  p: 1,
+                  bgcolor: "#fafafa",
+                  borderBottom: "1px solid #e0e0e0",
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  size="small"
+                  disabled={allSelectedVisible}
+                  onClick={() => {
+                    const visibleIds = new Set(filteredTabs.map((t) => t.id));
+                    setSelectedIds((prev) => new Set([...prev, ...visibleIds]));
+                  }}
+                >
+                  Select All
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  disabled={!anySelectedVisible}
+                  onClick={() => {
+                    const visibleIds = new Set(filteredTabs.map((t) => t.id));
+                    setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      visibleIds.forEach((id) => next.delete(id));
+                      return next;
+                    });
+                  }}
+                >
+                  Clear
+                </Button>
+              </Box>
+              <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+                <TabChecklist
+                  tabs={filteredTabs}
+                  selectedIds={selectedIds}
+                  onToggleOne={toggleOne}
+                />
+              </Box>
+            </Box>
+
+            {/* Export Format Section */}
+            <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
+              <Box
+                onClick={() => setExportFormatExpanded((v) => !v)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  p: 1,
+                  cursor: "pointer",
+                  userSelect: "none",
+                  bgcolor: "#fafafa",
+                  borderBottom: exportFormatExpanded
+                    ? "1px solid #e0e0e0"
+                    : "none",
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ flex: 1 }}>
+                  Export Format
+                </Typography>
+                {!exportFormatExpanded && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mr: 1 }}
+                  >
+                    {exportFormat}
+                  </Typography>
+                )}
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportFormatExpanded((v) => !v);
+                  }}
+                >
+                  {exportFormatExpanded ? (
+                    <ExpandLessIcon />
+                  ) : (
+                    <ExpandMoreIcon />
+                  )}
+                </IconButton>
+              </Box>
+              {exportFormatExpanded && (
+                <Box sx={{ p: 2 }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ mb: 1 }}
+                  >
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={exportFormat}
+                      onChange={(e) => setExportFormat(e.target.value)}
+                      placeholder="Enter format template..."
+                    />
+                    <Tooltip title="Format parameters help">
+                      <IconButton
+                        size="small"
+                        onClick={() => setInfoDialogOpen(true)}
+                        sx={{
+                          border: "1px solid",
+                          borderColor: "info.main",
+                          borderRadius: 2,
+                          "&:hover": {
+                            borderColor: "info.dark",
+                            bgcolor: "info.lighter",
+                          },
+                        }}
+                      >
+                        <InfoIcon color="info" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                  {selectedTabs.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: "block" }}
+                      >
+                        Preview (first 2 items):
+                      </Typography>
+                      <Box
+                        sx={{
+                          bgcolor: "grey.50",
+                          p: 1,
+                          borderRadius: 1,
+                          fontSize: "0.75rem",
+                          fontFamily: "monospace",
+                          maxHeight: 60,
+                          overflow: "auto",
+                        }}
+                      >
+                        {formattedExportData.slice(0, 2).map((item, index) => (
+                          <div key={index}>{item}</div>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Box>
+
+            <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+              <TextField
+                label="Count"
+                size="small"
+                value={`${selectedUrls.length}`}
+                InputProps={{ readOnly: true }}
+                sx={{ width: 100 }}
+              />
+              <Tooltip title="Copy selected URLs to clipboard">
+                <span>
+                  <Button
+                    variant="contained"
+                    onClick={handleCopy}
+                    disabled={selectedUrls.length === 0}
+                    startIcon={<ContentCopyIcon />}
+                  >
+                    Copy
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip title="Export selected URLs to .txt file">
+                <span>
+                  <Button
+                    variant="outlined"
+                    onClick={handleDownload}
+                    disabled={selectedUrls.length === 0}
+                    startIcon={<DescriptionIcon />}
+                  >
+                    Export
+                  </Button>
+                </span>
+              </Tooltip>
+            </Stack>
+          </Stack>
         </Box>
+      </div>
 
-        <Stack direction="row" spacing={1}>
-          <TextField
-            label="Count"
-            size="small"
-            value={`${selectedUrls.length}`}
-            InputProps={{ readOnly: true }}
-            sx={{ width: 100 }}
-          />
-          <Tooltip title="Copy selected URLs to clipboard">
-            <span>
-              <Button
-                variant="contained"
-                onClick={handleCopy}
-                disabled={selectedUrls.length === 0}
-                startIcon={<ContentCopyIcon />}
-              >
-                Copy
-              </Button>
-            </span>
-          </Tooltip>
-          <Tooltip title="Export selected URLs to .txt file">
-            <span>
-              <Button
-                variant="outlined"
-                onClick={handleDownload}
-                disabled={selectedUrls.length === 0}
-                startIcon={<DescriptionIcon />}
-              >
-                Export
-              </Button>
-            </span>
-          </Tooltip>
-        </Stack>
-      </Stack>
-    </Box>
+      {/* Format Parameters Info Dialog */}
+      <Dialog
+        open={infoDialogOpen}
+        onClose={() => setInfoDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Export Format Parameters</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Use these parameters in your format template to customize the export
+            output:
+          </Typography>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Available Parameters:
+            </Typography>
+            <Box component="ul" sx={{ pl: 2, m: 0 }}>
+              <li>
+                <code>&lt;id&gt;</code> - Index number (1, 2, 3...)
+              </li>
+              <li>
+                <code>&lt;idp&gt;</code> - Zero-padded index (01, 02, 03...)
+              </li>
+              <li>
+                <code>&lt;url&gt;</code> - Full URL of the tab
+              </li>
+              <li>
+                <code>&lt;name&gt;</code> - Page title
+              </li>
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Examples:
+            </Typography>
+            <Box
+              sx={{
+                bgcolor: "grey.50",
+                p: 1,
+                borderRadius: 1,
+                fontSize: "0.875rem",
+                fontFamily: "monospace",
+              }}
+            >
+              <div>
+                <code>&lt;url&gt;</code> → https://example.com
+              </div>
+              <div>
+                <code>&lt;id&gt;. &lt;name&gt;</code> → 1. Example Page
+              </div>
+              <div>
+                <code>&lt;idp&gt;. &lt;name&gt;</code> → 01. Example Page
+              </div>
+              <div>
+                <code>&lt;id&gt;. &lt;name&gt; - &lt;url&gt;</code> → 1. Example
+                Page - https://example.com
+              </div>
+              <div>
+                <code>&lt;name&gt; (&lt;url&gt;)</code> → Example Page
+                (https://example.com)
+              </div>
+            </Box>
+          </Box>
+
+          <Typography variant="body2" color="text.secondary">
+            Parameters are case-sensitive and must be enclosed in angle
+            brackets.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInfoDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </div>
   );
 };
 

@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import BatchUrl from "./tabs/BatchUrl";
 import ProfileManager from "./tabs/ProfileManager";
 import Extractor from "./tabs/Extractor";
-import { getCurrentState, saveCurrentState } from "./utils/storage";
+import BlockSite from "./tabs/BlockSite";
+import {
+  getCurrentState,
+  saveCurrentState,
+  getActiveTab,
+  saveActiveTab,
+} from "./utils/storage";
 import "./App.css";
 
 function App() {
@@ -11,12 +17,20 @@ function App() {
 
   useEffect(() => {
     loadCurrentState();
+    loadActiveTab();
   }, []);
 
   const loadCurrentState = async () => {
     const state = await getCurrentState();
     if (state) {
       setCurrentState(state);
+    }
+  };
+
+  const loadActiveTab = async () => {
+    const savedTab = await getActiveTab();
+    if (savedTab) {
+      setActiveTab(savedTab);
     }
   };
 
@@ -28,6 +42,11 @@ function App() {
   const handleLoadProfile = (profileData) => {
     setCurrentState(profileData);
     saveCurrentState(profileData);
+  };
+
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    saveActiveTab(tabName);
   };
 
   return (
@@ -42,21 +61,27 @@ function App() {
       <div className="tabs">
         <button
           className={`tab ${activeTab === "batch-url" ? "active" : ""}`}
-          onClick={() => setActiveTab("batch-url")}
+          onClick={() => handleTabChange("batch-url")}
         >
           Batch URL
         </button>
         <button
           className={`tab ${activeTab === "profiles" ? "active" : ""}`}
-          onClick={() => setActiveTab("profiles")}
+          onClick={() => handleTabChange("profiles")}
         >
           Profiles
         </button>
         <button
           className={`tab ${activeTab === "extractor" ? "active" : ""}`}
-          onClick={() => setActiveTab("extractor")}
+          onClick={() => handleTabChange("extractor")}
         >
           Extractor
+        </button>
+        <button
+          className={`tab ${activeTab === "block-site" ? "active" : ""}`}
+          onClick={() => handleTabChange("block-site")}
+        >
+          Block Site
         </button>
       </div>
 
@@ -74,6 +99,7 @@ function App() {
           />
         )}
         {activeTab === "extractor" && <Extractor />}
+        {activeTab === "block-site" && <BlockSite />}
       </div>
     </div>
   );

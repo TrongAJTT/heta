@@ -3,7 +3,8 @@
   "name": "Heta - Tab Helper",
   "version": "1.0.0",
   "description": "Batch URL generator and manager with profile support",
-  "permissions": ["storage", "tabs"],
+  "permissions": ["storage", "tabs", "declarativeNetRequest"],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "index.html",
     "default_icon": {

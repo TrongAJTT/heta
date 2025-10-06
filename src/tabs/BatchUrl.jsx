@@ -9,6 +9,8 @@ import {
   Divider,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   generateUrls,
   openUrlsInBatches,
@@ -26,6 +28,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
   const [currentOpenIndex, setCurrentOpenIndex] = useState(0); // Track progress for "Open Each"
+  const [expanded, setExpanded] = useState(true);
 
   // Load state from props
   useEffect(() => {
@@ -211,71 +214,119 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   };
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="subtitle1">
-        URL Pattern (use {"{id}"} as placeholder):
-      </Typography>
-      <TextField
-        label="URL Pattern"
-        variant="outlined"
-        value={urlPattern}
-        onChange={(e) => setUrlPattern(e.target.value)}
-        placeholder="https://example.com/page/{id}"
-        fullWidth
-        size="small"
-      />
+    <div className="fixed-height-container">
+      <Stack spacing={2} sx={{ height: "100%" }}>
+        {/* Fixed sections at top */}
+        <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
+          <Box
+            onClick={() => setExpanded((v) => !v)}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              p: 1,
+              cursor: "pointer",
+              userSelect: "none",
+              bgcolor: "#fafafa",
+              borderBottom: expanded ? "1px solid #e0e0e0" : "none",
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ flex: 1 }}>
+              URL Pattern (use {"{id}"} as placeholder)
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((v) => !v);
+              }}
+            >
+              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          </Box>
 
-      <Stack direction="row" spacing={1} alignItems="flex-end">
-        <TextField
-          label="Start ID"
-          type="number"
-          value={startId}
-          onChange={(e) => setStartId(e.target.value)}
-          placeholder="1"
-          size="small"
-          sx={{ flex: 1 }}
-        />
-        <IconButton
-          color="primary"
-          size="large"
-          sx={{ mb: 0.2 }}
-          title="Shift both IDs to the right"
-          onClick={() => {
-            const s = parseInt(startId);
-            const e = parseInt(endId);
-            if (!isNaN(s) && !isNaN(e)) {
-              const delta = e - s;
-              setStartId((s + delta + 1).toString());
-              setEndId((e + delta + 1).toString());
-            }
+          {expanded && (
+            <Box sx={{ p: 2 }}>
+              <TextField
+                label="URL Pattern"
+                variant="outlined"
+                value={urlPattern}
+                onChange={(e) => setUrlPattern(e.target.value)}
+                placeholder="https://example.com/page/{id}"
+                fullWidth
+                size="small"
+              />
+
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="flex-end"
+                sx={{ mt: 2 }}
+              >
+                <TextField
+                  label="Start ID"
+                  type="number"
+                  value={startId}
+                  onChange={(e) => setStartId(e.target.value)}
+                  placeholder="1"
+                  size="small"
+                  sx={{ flex: 1 }}
+                />
+                <IconButton
+                  color="primary"
+                  size="large"
+                  sx={{ mb: 0.2 }}
+                  title="Shift both IDs to the right"
+                  onClick={() => {
+                    const s = parseInt(startId);
+                    const e = parseInt(endId);
+                    if (!isNaN(s) && !isNaN(e)) {
+                      const delta = e - s;
+                      setStartId((s + delta + 1).toString());
+                      setEndId((e + delta + 1).toString());
+                    }
+                  }}
+                >
+                  <ArrowForwardIcon fontSize="inherit" />
+                </IconButton>
+                <TextField
+                  label="End ID"
+                  type="number"
+                  value={endId}
+                  onChange={(e) => setEndId(e.target.value)}
+                  placeholder="10"
+                  size="small"
+                  sx={{ flex: 1 }}
+                />
+              </Stack>
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleGenerateUrls}
+                sx={{ mt: 2 }}
+              >
+                Generate Links
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {error && (
+          <Typography color="error" variant="body2">
+            {error}
+          </Typography>
+        )}
+
+        {/* Expandable Batch Links section */}
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
           }}
         >
-          <ArrowForwardIcon fontSize="inherit" />
-        </IconButton>
-        <TextField
-          label="End ID"
-          type="number"
-          value={endId}
-          onChange={(e) => setEndId(e.target.value)}
-          placeholder="10"
-          size="small"
-          sx={{ flex: 1 }}
-        />
-      </Stack>
-
-      <Button variant="contained" color="primary" onClick={handleGenerateUrls}>
-        Generate Links
-      </Button>
-
-      {error && (
-        <Typography color="error" variant="body2">
-          {error}
-        </Typography>
-      )}
-
-      {generatedUrls.length > 0 && (
-        <>
-          <Divider sx={{ my: 2 }} />
           <Stack
             direction="row"
             alignItems="center"
@@ -294,20 +345,30 @@ const BatchUrl = ({ currentState, onStateChange }) => {
               Clear
             </Button>
           </Stack>
+
           <TextField
             multiline
-            minRows={3}
             value={generatedUrls.join("\n")}
             onChange={(e) => handleGeneratedUrlsChange(e.target.value)}
             fullWidth
             sx={{
-              mb: 2,
+              flex: 1,
+              display: "flex",
+              "& .MuiInputBase-root": {
+                height: "100%",
+                alignItems: "stretch",
+              },
               "& .MuiInputBase-inputMultiline": {
-                maxHeight: 100,
+                height: "100% !important",
                 overflow: "auto",
+                resize: "none",
               },
             }}
           />
+        </Box>
+
+        {/* Fixed controls at bottom */}
+        <Box className="fixed-bottom">
           <Stack direction="row" spacing={2} alignItems="center">
             <TextField
               label="Batch Size"
@@ -363,9 +424,9 @@ const BatchUrl = ({ currentState, onStateChange }) => {
               </Box>
             </Box>
           )}
-        </>
-      )}
-    </Stack>
+        </Box>
+      </Stack>
+    </div>
   );
 };
 
