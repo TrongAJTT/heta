@@ -3,6 +3,7 @@ import BatchUrl from "./tabs/BatchUrl";
 import ProfileManager from "./tabs/ProfileManager";
 import Extractor from "./tabs/Extractor";
 import BlockSite from "./tabs/BlockSite";
+import Redirect from "./tabs/Redirect";
 import {
   getCurrentState,
   saveCurrentState,
@@ -83,6 +84,12 @@ function App() {
         >
           Block Site
         </button>
+        <button
+          className={`tab ${activeTab === "redirect" ? "active" : ""}`}
+          onClick={() => handleTabChange("redirect")}
+        >
+          Redirect
+        </button>
       </div>
 
       <div className="tab-content">
@@ -100,6 +107,7 @@ function App() {
         )}
         {activeTab === "extractor" && <Extractor />}
         {activeTab === "block-site" && <BlockSite />}
+        {activeTab === "redirect" && <Redirect />}
       </div>
     </div>
   );

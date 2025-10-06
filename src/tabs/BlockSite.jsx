@@ -7,7 +7,6 @@ import {
   Typography,
   Stack,
   Paper,
-  Chip,
   Tooltip,
   Alert,
   Dialog,
@@ -230,19 +229,6 @@ const BlockSite = () => {
           </Stack>
         </Stack>
 
-        {/* Fixed alerts */}
-        {error && (
-          <Alert severity="error" onClose={() => setError("")}>
-            {error}
-          </Alert>
-        )}
-
-        {successMessage && (
-          <Alert severity="success" onClose={() => setSuccessMessage("")}>
-            {successMessage}
-          </Alert>
-        )}
-
         {/* Fixed add domain section */}
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -387,6 +373,40 @@ const BlockSite = () => {
           )}
         </Box>
       </Stack>
+
+      {/* Toast Notifications */}
+      {error && (
+        <Alert
+          severity="error"
+          onClose={() => setError("")}
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            left: 16,
+            right: 16,
+            zIndex: 1000,
+            maxWidth: "calc(100% - 32px)",
+          }}
+        >
+          {error}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert
+          severity="success"
+          onClose={() => setSuccessMessage("")}
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            left: 16,
+            right: 16,
+            zIndex: 1000,
+            maxWidth: "calc(100% - 32px)",
+          }}
+        >
+          {successMessage}
+        </Alert>
+      )}
 
       {/* Info Dialog */}
       <Dialog
