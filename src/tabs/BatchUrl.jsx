@@ -6,25 +6,36 @@ import {
   IconButton,
   Typography,
   Stack,
-  Divider,
+  Tooltip,
+  Alert,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
   generateUrls,
-  openUrlsInBatches,
   openAllUrls,
   openSingleBatch,
   calculateBatchInfo,
 } from "../utils/urlUtils";
+import {
+  BatchUrlGenerator,
+  UrlPatternManager,
+  BatchUrlFactory,
+  BATCH_URL_CONSTANTS,
+} from "../utils/batchUrlGenerator";
 
 const BatchUrl = ({ currentState, onStateChange }) => {
   const [urlPattern, setUrlPattern] = useState("");
   const [startId, setStartId] = useState("");
   const [endId, setEndId] = useState("");
   const [generatedUrls, setGeneratedUrls] = useState([]);
-  const [batchSize, setBatchSize] = useState(8);
+  const [batchSize, setBatchSize] = useState(
+    BATCH_URL_CONSTANTS.DEFAULT_BATCH_SIZE
+  );
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
   const [currentOpenIndex, setCurrentOpenIndex] = useState(0); // Track progress for "Open Each"
@@ -45,19 +56,18 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
       // Reconstruct progress UI if there was prior progress
       if (urls.length > 0 && opened > 0) {
-        const totalUrls = urls.length;
-        const totalBatches = Math.ceil(totalUrls / Math.max(1, bs));
-        const currentBatch = Math.min(
-          totalBatches,
-          Math.max(1, Math.ceil(opened / Math.max(1, bs)))
+        const batchInfo = BatchUrlGenerator.calculateBatchInfo(
+          urls.length,
+          opened - 1,
+          bs
         );
         setProgress({
-          currentBatch,
-          totalBatches,
+          currentBatch: batchInfo.currentBatch,
+          totalBatches: batchInfo.totalBatches,
           urlsOpened: opened,
-          totalUrls,
-          rangeStart: Math.max(1, opened - Math.max(1, bs) + 1),
-          rangeEnd: opened,
+          totalUrls: batchInfo.totalUrls,
+          rangeStart: batchInfo.rangeStart,
+          rangeEnd: batchInfo.rangeEnd,
         });
       }
     }
@@ -69,10 +79,10 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   const handleGenerateUrls = () => {
     setError("");
     try {
-      const urls = generateUrls(urlPattern, startId, endId);
+      const urls = BatchUrlGenerator.generate(urlPattern, startId, endId);
 
       // Warning for large batches
-      if (urls.length > 500) {
+      if (urls.length > BATCH_URL_CONSTANTS.WARNING_THRESHOLD) {
         if (
           !confirm(
             `You are about to generate ${urls.length} URLs. Large numbers may slow down your browser. Continue?`
@@ -97,7 +107,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       });
     } catch (err) {
       setError(err.message);
-      setGeneratedUrls([]);
+      // Don't override generatedUrls when there's an error
     }
   };
 
@@ -119,7 +129,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
     if (generatedUrls.length === 0) return;
 
     // Calculate batch info using utility
-    const batchInfo = calculateBatchInfo(
+    const batchInfo = BatchUrlGenerator.calculateBatchInfo(
       generatedUrls.length,
       currentOpenIndex,
       batchSize
@@ -232,7 +242,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
             }}
           >
             <Typography variant="subtitle1" sx={{ flex: 1 }}>
-              URL Pattern (use {"{id}"} as placeholder)
+              URL Pattern
             </Typography>
             <IconButton
               size="small"
@@ -247,15 +257,51 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
           {expanded && (
             <Box sx={{ p: 2 }}>
-              <TextField
-                label="URL Pattern"
-                variant="outlined"
-                value={urlPattern}
-                onChange={(e) => setUrlPattern(e.target.value)}
-                placeholder="https://example.com/page/{id}"
-                fullWidth
-                size="small"
-              />
+              <Stack direction="row" spacing={1} alignItems="flex-end">
+                <TextField
+                  label="URL Pattern"
+                  variant="outlined"
+                  value={urlPattern}
+                  onChange={(e) => setUrlPattern(e.target.value)}
+                  placeholder={`https://example.com/page/${BATCH_URL_CONSTANTS.ID_PLACEHOLDER}`}
+                  size="small"
+                  sx={{ flex: 1 }}
+                />
+                <Tooltip
+                  title={`Insert ${BATCH_URL_CONSTANTS.ID_PLACEHOLDER} placeholder`}
+                >
+                  <IconButton
+                    color="primary"
+                    size="small"
+                    sx={{
+                      height: 40,
+                      width: 40,
+                      border: "1px solid",
+                      borderColor: "primary.main",
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: "primary.dark",
+                        bgcolor: "primary.lighter",
+                      },
+                    }}
+                    onClick={() => {
+                      const currentValue = urlPattern;
+                      const cursorPos =
+                        document.activeElement?.selectionStart ||
+                        currentValue.length;
+                      const newValue = BatchUrlGenerator.insertIdPlaceholder(
+                        currentValue,
+                        cursorPos
+                      );
+                      setUrlPattern(newValue);
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight="bold">
+                      {BATCH_URL_CONSTANTS.ID_PLACEHOLDER}
+                    </Typography>
+                  </IconButton>
+                </Tooltip>
+              </Stack>
 
               <Stack
                 direction="row"
@@ -272,23 +318,34 @@ const BatchUrl = ({ currentState, onStateChange }) => {
                   size="small"
                   sx={{ flex: 1 }}
                 />
-                <IconButton
-                  color="primary"
-                  size="large"
-                  sx={{ mb: 0.2 }}
-                  title="Shift both IDs to the right"
-                  onClick={() => {
-                    const s = parseInt(startId);
-                    const e = parseInt(endId);
-                    if (!isNaN(s) && !isNaN(e)) {
-                      const delta = e - s;
-                      setStartId((s + delta + 1).toString());
-                      setEndId((e + delta + 1).toString());
-                    }
-                  }}
-                >
-                  <ArrowForwardIcon fontSize="inherit" />
-                </IconButton>
+                <Tooltip title="Shift both IDs to the right">
+                  <IconButton
+                    color="primary"
+                    size="small"
+                    sx={{
+                      height: 40,
+                      width: 40,
+                      border: "1px solid",
+                      borderColor: "primary.main",
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: "primary.dark",
+                        bgcolor: "primary.lighter",
+                      },
+                    }}
+                    onClick={() => {
+                      const s = parseInt(startId);
+                      const e = parseInt(endId);
+                      if (!isNaN(s) && !isNaN(e)) {
+                        const delta = e - s;
+                        setStartId((s + delta + 1).toString());
+                        setEndId((e + delta + 1).toString());
+                      }
+                    }}
+                  >
+                    <ArrowForwardIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 <TextField
                   label="End ID"
                   type="number"
@@ -298,25 +355,30 @@ const BatchUrl = ({ currentState, onStateChange }) => {
                   size="small"
                   sx={{ flex: 1 }}
                 />
+                <Tooltip title="Generate Links">
+                  <IconButton
+                    color="primary"
+                    size="small"
+                    sx={{
+                      height: 40,
+                      width: 40,
+                      border: "1px solid",
+                      borderColor: "primary.main",
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: "primary.dark",
+                        bgcolor: "primary.lighter",
+                      },
+                    }}
+                    onClick={handleGenerateUrls}
+                  >
+                    <AutoFixHighIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Stack>
-
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleGenerateUrls}
-                sx={{ mt: 2 }}
-              >
-                Generate Links
-              </Button>
             </Box>
           )}
         </Box>
-
-        {error && (
-          <Typography color="error" variant="body2">
-            {error}
-          </Typography>
-        )}
 
         {/* Expandable Batch Links section */}
         <Box
@@ -381,16 +443,26 @@ const BatchUrl = ({ currentState, onStateChange }) => {
               sx={{ width: 120 }}
               inputProps={{ min: 1 }}
             />
-            <Button variant="contained" color="success" onClick={handleOpenAll}>
-              Open All
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleOpenEach}
-            >
-              Open Each
-            </Button>
+            <Tooltip title="Open all URLs at once">
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleOpenAll}
+                startIcon={<OpenInNewIcon />}
+              >
+                All
+              </Button>
+            </Tooltip>
+            <Tooltip title="Open URLs in batches">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenEach}
+                startIcon={<PlayArrowIcon />}
+              >
+                Each
+              </Button>
+            </Tooltip>
           </Stack>
 
           {progress && (
@@ -426,6 +498,24 @@ const BatchUrl = ({ currentState, onStateChange }) => {
           )}
         </Box>
       </Stack>
+
+      {/* Floating Toast for Error */}
+      {error && (
+        <Alert
+          severity="error"
+          onClose={() => setError("")}
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            left: 16,
+            right: 16,
+            zIndex: 1000,
+            maxWidth: "calc(100% - 32px)",
+          }}
+        >
+          {error}
+        </Alert>
+      )}
     </div>
   );
 };

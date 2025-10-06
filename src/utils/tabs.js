@@ -15,6 +15,13 @@ export const queryCurrentWindowHttpTabs = async () => {
     { id: 1, title: "Example 1", url: "https://example.com" },
     { id: 2, title: "GitHub", url: "https://github.com" },
     { id: 3, title: "MDN", url: "https://developer.mozilla.org" },
+    { id: 4, title: "Google", url: "https://google.com" },
+    { id: 5, title: "YouTube", url: "https://youtube.com" },
+    { id: 6, title: "Twitter", url: "https://twitter.com" },
+    { id: 7, title: "Facebook", url: "https://facebook.com" },
+    { id: 8, title: "Instagram", url: "https://instagram.com" },
+    { id: 9, title: "LinkedIn", url: "https://linkedin.com" },
+    { id: 10, title: "Reddit", url: "https://reddit.com" },
   ];
 };
 

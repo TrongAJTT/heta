@@ -29,6 +29,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
   const [profiles, setProfiles] = useState([]);
   const [activeProfileId, setActiveProfile] = useState(null);
   const [newProfileName, setNewProfileName] = useState("");
+  const [newProfileDescription, setNewProfileDescription] = useState("");
   const [showNewProfileInput, setShowNewProfileInput] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
 
   const handleCreateProfile = async () => {
     const trimmedName = newProfileName.trim();
+    const trimmedDescription = newProfileDescription.trim();
 
     // Validate profile name
     if (!trimmedName) {
@@ -71,6 +73,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
     const newProfile = {
       id: Date.now().toString(),
       name: trimmedName,
+      description: trimmedDescription,
       createdAt: new Date().toISOString(),
       data: currentState || {},
     };
@@ -78,6 +81,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
     await saveProfile(newProfile);
     await setActiveProfileId(newProfile.id);
     setNewProfileName("");
+    setNewProfileDescription("");
     setShowNewProfileInput(false);
     await loadProfiles();
     await loadActiveProfile();
@@ -241,12 +245,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                   />
                 </Stack>
               ) : (
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="center"
-                  sx={{ maxWidth: 400, mx: "auto" }}
-                >
+                <Stack spacing={1} sx={{ maxWidth: 500, mx: "auto" }}>
                   <TextField
                     value={newProfileName}
                     onChange={(e) => setNewProfileName(e.target.value)}
@@ -254,34 +253,47 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                     size="small"
                     autoFocus
                     onKeyPress={(e) =>
-                      e.key === "Enter" && handleCreateProfile()
+                      e.key === "Enter" && !e.shiftKey && handleCreateProfile()
                     }
-                    sx={{ flex: 1 }}
+                    fullWidth
                   />
-                  <Button
-                    variant="contained"
-                    color="success"
+                  <TextField
+                    value={newProfileDescription}
+                    onChange={(e) => setNewProfileDescription(e.target.value)}
+                    placeholder="Description (optional)..."
                     size="small"
-                    onClick={handleCreateProfile}
-                  >
-                    Create
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    size="small"
-                    onClick={() => {
-                      setShowNewProfileInput(false);
-                      setNewProfileName("");
-                    }}
-                  >
-                    Cancel
-                  </Button>
+                    multiline
+                    rows={2}
+                    fullWidth
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      onClick={handleCreateProfile}
+                      sx={{ flex: 1 }}
+                    >
+                      Create
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      onClick={() => {
+                        setShowNewProfileInput(false);
+                        setNewProfileName("");
+                        setNewProfileDescription("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </Stack>
                 </Stack>
               )}
             </Paper>
           ) : (
-            <Stack spacing={1}>
+            <Stack spacing={0.5}>
               {profiles.map((profile) => (
                 <Paper
                   key={profile.id}
@@ -289,7 +301,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                     activeProfileId === profile.id ? "outlined" : "elevation"
                   }
                   sx={{
-                    p: 2,
+                    p: 1,
                     display: "flex",
                     alignItems: "center",
                     borderColor:
@@ -302,16 +314,32 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                         : undefined,
                   }}
                 >
-                  <Stack flex={1}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Typography variant="subtitle1">
+                  <Stack flex={1} spacing={0.25}>
+                    <Stack direction="row" alignItems="center" spacing={0.75}>
+                      <Typography variant="body2" fontWeight={600} noWrap>
                         {profile.name}
                       </Typography>
                       {activeProfileId === profile.id && (
                         <Chip label="Active" color="primary" size="small" />
                       )}
                     </Stack>
-                    <Typography variant="caption" color="text.secondary">
+                    {profile.description && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: "0.8125rem",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        {profile.description}
+                      </Typography>
+                    )}
+                    <Typography variant="caption" color="text.secondary" noWrap>
                       Created:{" "}
                       {new Date(profile.createdAt).toLocaleDateString("en-US")}
                       {profile.updatedAt && (
@@ -325,7 +353,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                       )}
                     </Typography>
                   </Stack>
-                  <Stack direction="row" spacing={1}>
+                  <Stack direction="row" spacing={0.5}>
                     <Tooltip title="Load">
                       <span>
                         <IconButton
@@ -334,7 +362,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                           onClick={() => handleLoadProfile(profile.id)}
                           disabled={activeProfileId === profile.id}
                         >
-                          <DownloadIcon />
+                          <DownloadIcon fontSize="small" />
                         </IconButton>
                       </span>
                     </Tooltip>
@@ -350,7 +378,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                           if (newName) handleRenameProfile(profile.id, newName);
                         }}
                       >
-                        <EditIcon />
+                        <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Delete">
@@ -359,7 +387,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                         size="small"
                         onClick={() => handleDeleteProfile(profile.id)}
                       >
-                        <DeleteIcon />
+                        <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   </Stack>
@@ -391,35 +419,50 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                 />
               </Stack>
             ) : (
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack spacing={1}>
                 <TextField
                   value={newProfileName}
                   onChange={(e) => setNewProfileName(e.target.value)}
                   placeholder="Profile name..."
                   size="small"
                   autoFocus
-                  onKeyPress={(e) => e.key === "Enter" && handleCreateProfile()}
-                  sx={{ flex: 1 }}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && !e.shiftKey && handleCreateProfile()
+                  }
+                  fullWidth
                 />
-                <Button
-                  variant="contained"
-                  color="success"
+                <TextField
+                  value={newProfileDescription}
+                  onChange={(e) => setNewProfileDescription(e.target.value)}
+                  placeholder="Description (optional)..."
                   size="small"
-                  onClick={handleCreateProfile}
-                >
-                  Create
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={() => {
-                    setShowNewProfileInput(false);
-                    setNewProfileName("");
-                  }}
-                >
-                  Cancel
-                </Button>
+                  multiline
+                  rows={2}
+                  fullWidth
+                />
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    onClick={handleCreateProfile}
+                    sx={{ flex: 1 }}
+                  >
+                    Create
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="small"
+                    onClick={() => {
+                      setShowNewProfileInput(false);
+                      setNewProfileName("");
+                      setNewProfileDescription("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
               </Stack>
             )}
           </Box>

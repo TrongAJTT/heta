@@ -16,6 +16,11 @@ function App() {
   const [activeTab, setActiveTab] = useState("batch-url");
   const [currentState, setCurrentState] = useState({});
 
+  // Settings for other tabs
+  const [exportFormat, setExportFormat] = useState("<url>");
+  const [blockedDomains, setBlockedDomains] = useState([]);
+  const [redirectRules, setRedirectRules] = useState([]);
+
   useEffect(() => {
     loadCurrentState();
     loadActiveTab();
@@ -25,6 +30,10 @@ function App() {
     const state = await getCurrentState();
     if (state) {
       setCurrentState(state);
+      // Load settings for other tabs
+      if (state.exportFormat) setExportFormat(state.exportFormat);
+      if (state.blockedDomains) setBlockedDomains(state.blockedDomains);
+      if (state.redirectRules) setRedirectRules(state.redirectRules);
     }
   };
 
@@ -40,9 +49,38 @@ function App() {
     await saveCurrentState(newState);
   };
 
+  const handleSettingsChange = (settings) => {
+    // Update individual settings
+    if (settings.exportFormat !== undefined)
+      setExportFormat(settings.exportFormat);
+    if (settings.blockedDomains !== undefined)
+      setBlockedDomains(settings.blockedDomains);
+    if (settings.redirectRules !== undefined)
+      setRedirectRules(settings.redirectRules);
+
+    // Save to storage
+    const updatedState = {
+      ...currentState,
+      ...settings,
+    };
+    setCurrentState(updatedState);
+    saveCurrentState(updatedState);
+  };
+
   const handleLoadProfile = (profileData) => {
     setCurrentState(profileData);
     saveCurrentState(profileData);
+
+    // Load settings for other tabs
+    if (profileData.exportFormat) setExportFormat(profileData.exportFormat);
+    else setExportFormat("<url>");
+
+    if (profileData.blockedDomains)
+      setBlockedDomains(profileData.blockedDomains);
+    else setBlockedDomains([]);
+
+    if (profileData.redirectRules) setRedirectRules(profileData.redirectRules);
+    else setRedirectRules([]);
   };
 
   const handleTabChange = (tabName) => {
@@ -64,13 +102,7 @@ function App() {
           className={`tab ${activeTab === "batch-url" ? "active" : ""}`}
           onClick={() => handleTabChange("batch-url")}
         >
-          Batch URL
-        </button>
-        <button
-          className={`tab ${activeTab === "profiles" ? "active" : ""}`}
-          onClick={() => handleTabChange("profiles")}
-        >
-          Profiles
+          Batch
         </button>
         <button
           className={`tab ${activeTab === "extractor" ? "active" : ""}`}
@@ -90,6 +122,12 @@ function App() {
         >
           Redirect
         </button>
+        <button
+          className={`tab ${activeTab === "profiles" ? "active" : ""}`}
+          onClick={() => handleTabChange("profiles")}
+        >
+          Profiles
+        </button>
       </div>
 
       <div className="tab-content">
@@ -101,13 +139,39 @@ function App() {
         )}
         {activeTab === "profiles" && (
           <ProfileManager
-            currentState={currentState}
+            currentState={{
+              ...currentState,
+              exportFormat,
+              blockedDomains,
+              redirectRules,
+            }}
             onLoadProfile={handleLoadProfile}
           />
         )}
-        {activeTab === "extractor" && <Extractor />}
-        {activeTab === "block-site" && <BlockSite />}
-        {activeTab === "redirect" && <Redirect />}
+        {activeTab === "extractor" && (
+          <Extractor
+            exportFormat={exportFormat}
+            onExportFormatChange={(format) =>
+              handleSettingsChange({ exportFormat: format })
+            }
+          />
+        )}
+        {activeTab === "block-site" && (
+          <BlockSite
+            blockedDomains={blockedDomains}
+            onBlockedDomainsChange={(domains) =>
+              handleSettingsChange({ blockedDomains: domains })
+            }
+          />
+        )}
+        {activeTab === "redirect" && (
+          <Redirect
+            redirectRules={redirectRules}
+            onRedirectRulesChange={(rules) =>
+              handleSettingsChange({ redirectRules: rules })
+            }
+          />
+        )}
       </div>
     </div>
   );

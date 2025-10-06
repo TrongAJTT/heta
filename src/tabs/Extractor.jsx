@@ -25,13 +25,20 @@ import {
 
 // Data access and file operations are moved to utils/tabs.js
 
-const Extractor = () => {
+const Extractor = ({ exportFormat: initialFormat, onExportFormatChange }) => {
   const [tabs, setTabs] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [filterText, setFilterText] = useState("");
-  const [exportFormat, setExportFormat] = useState("<url>");
+  const [exportFormat, setExportFormat] = useState(initialFormat || "<url>");
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
   const [exportFormatExpanded, setExportFormatExpanded] = useState(false);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    if (initialFormat) {
+      setExportFormat(initialFormat);
+    }
+  }, [initialFormat]);
 
   useEffect(() => {
     (async () => {
@@ -106,227 +113,223 @@ const Extractor = () => {
   };
 
   return (
-    <div className="fixed-height-container">
-      <div className="scrollable-content">
-        <Box
-          sx={{
-            maxWidth: 600,
-            mx: "auto",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Stack spacing={2} sx={{ height: "100%" }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="h6" sx={{ flex: 1 }}>
-                Tab Extractor
-              </Typography>
-              <TextField
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
-                size="small"
-                placeholder="Filter URLs..."
-                sx={{ width: 220 }}
-              />
-            </Stack>
-
+    <>
+      <div className="fixed-height-container">
+        <Stack spacing={2} sx={{ height: "100%" }}>
+          <Box
+            sx={{
+              border: "1px solid #e0e0e0",
+              borderRadius: 1,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+            }}
+          >
             <Box
               sx={{
-                border: "1px solid #e0e0e0",
-                borderRadius: 1,
-                flex: 1,
                 display: "flex",
-                flexDirection: "column",
+                alignItems: "center",
+                gap: 2,
+                p: 1,
+                bgcolor: "#fafafa",
+                borderBottom: "1px solid #e0e0e0",
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  p: 1,
-                  bgcolor: "#fafafa",
-                  borderBottom: "1px solid #e0e0e0",
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={allSelectedVisible}
+                onClick={() => {
+                  const visibleIds = new Set(filteredTabs.map((t) => t.id));
+                  setSelectedIds((prev) => new Set([...prev, ...visibleIds]));
                 }}
               >
-                <Button
-                  variant="outlined"
+                Select All
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={!anySelectedVisible}
+                onClick={() => {
+                  const visibleIds = new Set(filteredTabs.map((t) => t.id));
+                  setSelectedIds((prev) => {
+                    const next = new Set(prev);
+                    visibleIds.forEach((id) => next.delete(id));
+                    return next;
+                  });
+                }}
+              >
+                Clear
+              </Button>
+              <Box
+                sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}
+              >
+                <TextField
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
                   size="small"
-                  disabled={allSelectedVisible}
-                  onClick={() => {
-                    const visibleIds = new Set(filteredTabs.map((t) => t.id));
-                    setSelectedIds((prev) => new Set([...prev, ...visibleIds]));
+                  placeholder="Filter URLs..."
+                  sx={{
+                    width: 220,
+                    "& .MuiInputBase-root": {
+                      height: "32px", // Match button height
+                    },
                   }}
-                >
-                  Select All
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  disabled={!anySelectedVisible}
-                  onClick={() => {
-                    const visibleIds = new Set(filteredTabs.map((t) => t.id));
-                    setSelectedIds((prev) => {
-                      const next = new Set(prev);
-                      visibleIds.forEach((id) => next.delete(id));
-                      return next;
-                    });
-                  }}
-                >
-                  Clear
-                </Button>
-              </Box>
-              <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
-                <TabChecklist
-                  tabs={filteredTabs}
-                  selectedIds={selectedIds}
-                  onToggleOne={toggleOne}
                 />
               </Box>
             </Box>
+            <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+              <TabChecklist
+                tabs={filteredTabs}
+                selectedIds={selectedIds}
+                onToggleOne={toggleOne}
+              />
+            </Box>
+          </Box>
 
-            {/* Export Format Section */}
-            <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
-              <Box
-                onClick={() => setExportFormatExpanded((v) => !v)}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  p: 1,
-                  cursor: "pointer",
-                  userSelect: "none",
-                  bgcolor: "#fafafa",
-                  borderBottom: exportFormatExpanded
-                    ? "1px solid #e0e0e0"
-                    : "none",
+          {/* Export Format Section */}
+          <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
+            <Box
+              onClick={() => setExportFormatExpanded((v) => !v)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                p: 1,
+                cursor: "pointer",
+                userSelect: "none",
+                bgcolor: "#fafafa",
+                borderBottom: exportFormatExpanded
+                  ? "1px solid #e0e0e0"
+                  : "none",
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ flex: 1 }}>
+                Export Format
+              </Typography>
+              {!exportFormatExpanded && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mr: 1 }}
+                >
+                  {exportFormat}
+                </Typography>
+              )}
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExportFormatExpanded((v) => !v);
                 }}
               >
-                <Typography variant="subtitle2" sx={{ flex: 1 }}>
-                  Export Format
-                </Typography>
-                {!exportFormatExpanded && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mr: 1 }}
-                  >
-                    {exportFormat}
-                  </Typography>
-                )}
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExportFormatExpanded((v) => !v);
-                  }}
-                >
-                  {exportFormatExpanded ? (
-                    <ExpandLessIcon />
-                  ) : (
-                    <ExpandMoreIcon />
-                  )}
-                </IconButton>
-              </Box>
-              {exportFormatExpanded && (
-                <Box sx={{ p: 2 }}>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{ mb: 1 }}
-                  >
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={exportFormat}
-                      onChange={(e) => setExportFormat(e.target.value)}
-                      placeholder="Enter format template..."
-                    />
-                    <Tooltip title="Format parameters help">
-                      <IconButton
-                        size="small"
-                        onClick={() => setInfoDialogOpen(true)}
-                        sx={{
-                          border: "1px solid",
-                          borderColor: "info.main",
-                          borderRadius: 2,
-                          "&:hover": {
-                            borderColor: "info.dark",
-                            bgcolor: "info.lighter",
-                          },
-                        }}
-                      >
-                        <InfoIcon color="info" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                  {selectedTabs.length > 0 && (
-                    <Box sx={{ mt: 1 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "block" }}
-                      >
-                        Preview (first 2 items):
-                      </Typography>
-                      <Box
-                        sx={{
-                          bgcolor: "grey.50",
-                          p: 1,
-                          borderRadius: 1,
-                          fontSize: "0.75rem",
-                          fontFamily: "monospace",
-                          maxHeight: 60,
-                          overflow: "auto",
-                        }}
-                      >
-                        {formattedExportData.slice(0, 2).map((item, index) => (
-                          <div key={index}>{item}</div>
-                        ))}
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
-              )}
+                {exportFormatExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
             </Box>
+            {exportFormatExpanded && (
+              <Box sx={{ p: 2 }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ mb: 1 }}
+                >
+                  <TextField
+                    fullWidth
+                    size="small"
+                    value={exportFormat}
+                    onChange={(e) => {
+                      const newFormat = e.target.value;
+                      setExportFormat(newFormat);
+                      if (onExportFormatChange) {
+                        onExportFormatChange(newFormat);
+                      }
+                    }}
+                    placeholder="Enter format template..."
+                  />
+                  <Tooltip title="Format parameters help">
+                    <IconButton
+                      size="small"
+                      onClick={() => setInfoDialogOpen(true)}
+                      sx={{
+                        border: "1px solid",
+                        borderColor: "info.main",
+                        borderRadius: 2,
+                        "&:hover": {
+                          borderColor: "info.dark",
+                          bgcolor: "info.lighter",
+                        },
+                      }}
+                    >
+                      <InfoIcon color="info" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+                {selectedTabs.length > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: "block" }}
+                    >
+                      Preview (first 2 items):
+                    </Typography>
+                    <Box
+                      sx={{
+                        bgcolor: "grey.50",
+                        p: 1,
+                        borderRadius: 1,
+                        fontSize: "0.75rem",
+                        fontFamily: "monospace",
+                        maxHeight: 60,
+                        overflow: "auto",
+                      }}
+                    >
+                      {formattedExportData.slice(0, 2).map((item, index) => (
+                        <div key={index}>{item}</div>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Box>
 
-            <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
-              <TextField
-                label="Count"
-                size="small"
-                value={`${selectedUrls.length}`}
-                InputProps={{ readOnly: true }}
-                sx={{ width: 100 }}
-              />
-              <Tooltip title="Copy selected URLs to clipboard">
-                <span>
-                  <Button
-                    variant="contained"
-                    onClick={handleCopy}
-                    disabled={selectedUrls.length === 0}
-                    startIcon={<ContentCopyIcon />}
-                  >
-                    Copy
-                  </Button>
-                </span>
-              </Tooltip>
-              <Tooltip title="Export selected URLs to .txt file">
-                <span>
-                  <Button
-                    variant="outlined"
-                    onClick={handleDownload}
-                    disabled={selectedUrls.length === 0}
-                    startIcon={<DescriptionIcon />}
-                  >
-                    Export
-                  </Button>
-                </span>
-              </Tooltip>
-            </Stack>
+          <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+            <TextField
+              label="Count"
+              size="small"
+              value={`${selectedUrls.length}`}
+              InputProps={{ readOnly: true }}
+              sx={{ width: 100 }}
+            />
+            <Tooltip title="Copy selected URLs to clipboard">
+              <span>
+                <Button
+                  variant="contained"
+                  onClick={handleCopy}
+                  disabled={selectedUrls.length === 0}
+                  startIcon={<ContentCopyIcon />}
+                >
+                  Copy
+                </Button>
+              </span>
+            </Tooltip>
+            <Tooltip title="Export selected URLs to .txt file">
+              <span>
+                <Button
+                  variant="outlined"
+                  onClick={handleDownload}
+                  disabled={selectedUrls.length === 0}
+                  startIcon={<DescriptionIcon />}
+                >
+                  Export
+                </Button>
+              </span>
+            </Tooltip>
           </Stack>
-        </Box>
+        </Stack>
       </div>
 
       {/* Format Parameters Info Dialog */}
@@ -405,7 +408,7 @@ const Extractor = () => {
           <Button onClick={() => setInfoDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </>
   );
 };
 

@@ -13,6 +13,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Divider,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -21,6 +26,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import BlockIcon from "@mui/icons-material/Block";
 import ClearIcon from "@mui/icons-material/Clear";
 import InfoIcon from "@mui/icons-material/Info";
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import {
   getBlockedDomains,
   saveBlockedDomains,
@@ -28,14 +35,31 @@ import {
 } from "../utils/blockSite";
 import { DomainValidator } from "../utils/domainValidator";
 
-const BlockSite = () => {
-  const [blockedDomains, setBlockedDomains] = useState([]);
+const BlockSite = ({
+  blockedDomains: initialDomains,
+  onBlockedDomainsChange,
+}) => {
+  const [blockedDomains, setBlockedDomains] = useState(initialDomains || []);
   const [newDomain, setNewDomain] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+  const [bulkAddDialogOpen, setBulkAddDialogOpen] = useState(false);
+  const [bulkAddInput, setBulkAddInput] = useState("");
+  const [bulkAddResultDialogOpen, setBulkAddResultDialogOpen] = useState(false);
+  const [bulkAddResult, setBulkAddResult] = useState({
+    success: [],
+    failed: [],
+  });
+
+  // Update local state when prop changes
+  useEffect(() => {
+    if (initialDomains) {
+      setBlockedDomains(initialDomains);
+    }
+  }, [initialDomains]);
 
   useEffect(() => {
     loadBlockedDomains();
@@ -43,7 +67,23 @@ const BlockSite = () => {
 
   const loadBlockedDomains = async () => {
     const domains = await getBlockedDomains();
-    setBlockedDomains(domains);
+    if (
+      domains &&
+      domains.length > 0 &&
+      (!initialDomains || initialDomains.length === 0)
+    ) {
+      setBlockedDomains(domains);
+      if (onBlockedDomainsChange) {
+        onBlockedDomainsChange(domains);
+      }
+    }
+  };
+
+  const updateBlockedDomains = (newDomains) => {
+    setBlockedDomains(newDomains);
+    if (onBlockedDomainsChange) {
+      onBlockedDomainsChange(newDomains);
+    }
   };
 
   const validateDomain = (domain) => {
@@ -66,7 +106,7 @@ const BlockSite = () => {
     };
 
     const updatedDomains = [...blockedDomains, newEntry];
-    setBlockedDomains(updatedDomains);
+    updateBlockedDomains(updatedDomains);
     setNewDomain("");
     setError("");
   };
@@ -78,7 +118,7 @@ const BlockSite = () => {
       )
     ) {
       const updatedDomains = blockedDomains.filter((d) => d.id !== id);
-      setBlockedDomains(updatedDomains);
+      updateBlockedDomains(updatedDomains);
     }
   };
 
@@ -113,7 +153,7 @@ const BlockSite = () => {
         : d
     );
 
-    setBlockedDomains(updatedDomains);
+    updateBlockedDomains(updatedDomains);
     setEditingId(null);
     setEditingValue("");
     setError("");
@@ -150,10 +190,53 @@ const BlockSite = () => {
         "Are you sure you want to clear all blocked domains? This will remove all blocking rules."
       )
     ) {
-      setBlockedDomains([]);
+      updateBlockedDomains([]);
       setError("");
       setSuccessMessage("");
     }
+  };
+
+  const handleBulkAdd = () => {
+    const lines = bulkAddInput
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (lines.length === 0) {
+      setError("Please enter at least one domain");
+      return;
+    }
+
+    const success = [];
+    const failed = [];
+    const newDomains = [...blockedDomains];
+
+    lines.forEach((domain) => {
+      const validation = DomainValidator.validate(domain, newDomains, null);
+      if (validation.valid) {
+        const newEntry = {
+          id: Date.now().toString() + Math.random(),
+          domain: validation.domain,
+          createdAt: new Date().toISOString(),
+        };
+        newDomains.push(newEntry);
+        success.push(validation.domain);
+      } else {
+        failed.push({ domain, error: validation.error });
+      }
+    });
+
+    updateBlockedDomains(newDomains);
+    setBulkAddResult({ success, failed });
+    setBulkAddDialogOpen(false);
+    setBulkAddInput("");
+    setBulkAddResultDialogOpen(true);
+  };
+
+  const handleCopyBulkResult = (text) => {
+    navigator.clipboard.writeText(text).catch((e) => {
+      console.error("Failed to copy:", e);
+    });
   };
 
   return (
@@ -230,36 +313,43 @@ const BlockSite = () => {
         </Stack>
 
         {/* Fixed add domain section */}
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <TextField
-              label="Domain to block"
-              variant="outlined"
-              value={newDomain}
-              onChange={(e) => setNewDomain(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleAddDomain()}
-              placeholder="example.com"
-              size="small"
-              fullWidth
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleAddDomain}
-              sx={{ minWidth: 100 }}
-            >
-              Add
-            </Button>
-          </Stack>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mt: 1, display: "block" }}
+        <Stack direction="row" spacing={1} alignItems="center">
+          <TextField
+            label="Domain to block"
+            variant="outlined"
+            value={newDomain}
+            onChange={(e) => setNewDomain(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleAddDomain()}
+            placeholder="example.com"
+            size="small"
+            fullWidth
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddDomain}
+            sx={{ minWidth: 100 }}
           >
-            Examples: facebook.com, youtube.com, twitter.com
-          </Typography>
-        </Paper>
+            Add
+          </Button>
+          <Tooltip title="Add multiple">
+            <IconButton
+              color="success"
+              onClick={() => setBulkAddDialogOpen(true)}
+              sx={{
+                bgcolor: "success.main",
+                color: "white",
+                borderRadius: "8px",
+                "&:hover": {
+                  bgcolor: "success.dark",
+                },
+              }}
+            >
+              <PlaylistAddIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
 
         {/* Fixed blocked domains header */}
         {blockedDomains.length > 0 && (
@@ -282,13 +372,13 @@ const BlockSite = () => {
               </Typography>
             </Box>
           ) : (
-            <Stack spacing={1}>
+            <Stack spacing={0.5}>
               {blockedDomains.map((domain) => (
                 <Paper
                   key={domain.id}
                   variant="outlined"
                   sx={{
-                    p: 2,
+                    p: 1,
                     display: "flex",
                     alignItems: "center",
                     "&:hover": { bgcolor: "action.hover" },
@@ -297,7 +387,7 @@ const BlockSite = () => {
                   {editingId === domain.id ? (
                     <Stack
                       direction="row"
-                      spacing={1}
+                      spacing={0.5}
                       alignItems="center"
                       flex={1}
                     >
@@ -330,11 +420,15 @@ const BlockSite = () => {
                     </Stack>
                   ) : (
                     <>
-                      <Stack flex={1}>
-                        <Typography variant="body1" fontWeight={500}>
+                      <Stack flex={1} spacing={0.25}>
+                        <Typography variant="body2" fontWeight={600} noWrap>
                           {domain.domain}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          noWrap
+                        >
                           Added: {new Date(domain.createdAt).toLocaleString()}
                           {domain.updatedAt && (
                             <>
@@ -345,14 +439,14 @@ const BlockSite = () => {
                           )}
                         </Typography>
                       </Stack>
-                      <Stack direction="row" spacing={1}>
+                      <Stack direction="row" spacing={0.5}>
                         <Tooltip title="Edit domain">
                           <IconButton
                             color="primary"
                             size="small"
                             onClick={() => handleStartEdit(domain)}
                           >
-                            <EditIcon />
+                            <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Remove from block list">
@@ -361,7 +455,7 @@ const BlockSite = () => {
                             size="small"
                             onClick={() => handleDeleteDomain(domain.id)}
                           >
-                            <DeleteIcon />
+                            <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       </Stack>
@@ -473,6 +567,175 @@ const BlockSite = () => {
         <DialogActions>
           <Button onClick={() => setInfoDialogOpen(false)} color="primary">
             Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Add Dialog */}
+      <Dialog
+        open={bulkAddDialogOpen}
+        onClose={() => setBulkAddDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Add Multiple Domains</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Enter each domain on a new line. Example:
+            </Typography>
+            <Box
+              sx={{
+                bgcolor: "grey.50",
+                p: 1,
+                borderRadius: 1,
+                fontSize: "0.875rem",
+                fontFamily: "monospace",
+              }}
+            >
+              <div>example.com</div>
+              <div>google.com</div>
+              <div>facebook.com</div>
+            </Box>
+            <TextField
+              multiline
+              rows={10}
+              value={bulkAddInput}
+              onChange={(e) => setBulkAddInput(e.target.value)}
+              placeholder="example.com&#10;google.com&#10;facebook.com"
+              fullWidth
+              sx={{
+                fontFamily: "monospace",
+                "& textarea": {
+                  fontFamily: "monospace",
+                },
+              }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBulkAddDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleBulkAdd}
+            disabled={!bulkAddInput.trim()}
+          >
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Add Result Dialog */}
+      <Dialog
+        open={bulkAddResultDialogOpen}
+        onClose={() => setBulkAddResultDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Add Multiple Domains Result</DialogTitle>
+        <DialogContent>
+          <Stack spacing={3}>
+            {bulkAddResult.success.length > 0 && (
+              <Box>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant="subtitle1" color="success.main">
+                    ✓ Add successfully ({bulkAddResult.success.length})
+                  </Typography>
+                  <Button
+                    size="small"
+                    startIcon={<ContentCopyIcon />}
+                    onClick={() =>
+                      handleCopyBulkResult(bulkAddResult.success.join("\n"))
+                    }
+                  >
+                    Copy
+                  </Button>
+                </Stack>
+                <Box
+                  sx={{
+                    bgcolor: "success.lighter",
+                    p: 2,
+                    borderRadius: 1,
+                    maxHeight: 200,
+                    overflow: "auto",
+                    fontFamily: "monospace",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {bulkAddResult.success.map((domain, idx) => (
+                    <div key={idx}>{domain}</div>
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {bulkAddResult.failed.length > 0 && (
+              <Box>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant="subtitle1" color="error.main">
+                    ✗ Add failed ({bulkAddResult.failed.length})
+                  </Typography>
+                  <Button
+                    size="small"
+                    startIcon={<ContentCopyIcon />}
+                    onClick={() =>
+                      handleCopyBulkResult(
+                        bulkAddResult.failed
+                          .map((f) => `${f.domain} - ${f.error}`)
+                          .join("\n")
+                      )
+                    }
+                  >
+                    Copy
+                  </Button>
+                </Stack>
+                <Box
+                  sx={{
+                    bgcolor: "error.lighter",
+                    p: 2,
+                    borderRadius: 1,
+                    maxHeight: 200,
+                    overflow: "auto",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {bulkAddResult.failed.map((item, idx) => (
+                    <Box key={idx} sx={{ mb: 0.5 }}>
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        sx={{ fontFamily: "monospace", fontWeight: 600 }}
+                      >
+                        {item.domain}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        color="text.secondary"
+                      >
+                        {" "}
+                        - {item.error}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBulkAddResultDialogOpen(false)}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

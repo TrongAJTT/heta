@@ -1,4 +1,4 @@
-# <img src="public/icon48.svg" alt="Heta" width="24" height="24" style="vertical-align: middle;"> Heta - Tab Helper Extension
+# <img src="public/icon48.svg" alt="Heta" width="24" height="24" style="vertical-align: middle;"> Heta - Tab Helper
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
@@ -6,38 +6,47 @@
 [![Vite](https://img.shields.io/badge/Vite-5.0.8-646cff.svg)](https://vitejs.dev/)
 [![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-4285f4.svg)](https://developer.chrome.com/docs/extensions/mv3/)
 
-Browser extension để quản lý và mở batch URLs với hỗ trợ profiles. Được xây dựng với React + Vite để nhỏ gọn và hiệu quả.
+> Trợ thủ quản lý tab và URL cho trình duyệt: tạo/mở theo lô (batch), trích xuất URL, chặn domain, chuyển hướng, lưu cấu hình theo Profile. Xây dựng trên React + Vite (Manifest V3), tối ưu cho hiệu năng và trải nghiệm đơn giản.
 
 ## ✨ Tính năng
 
-### Batch URL Generator
+### 1) Batch URL
 
-- Tạo nhiều URLs từ pattern với `{id}` placemarkdownholder
-- Hỗ trợ Start ID và End ID linh hoạt
-- Validate input và hiển thị errors rõ ràng
-- Hiển thị tất cả URLs đã tạo trong textarea, có thể chỉnh sửa trực tiếp và cuộn bằng con lăn
+- Tạo nhiều URL từ pattern với `{id}` hoặc `{idp}` (zero-pad)
+- Start/End ID linh hoạt, kiểm tra lỗi rõ ràng
+- Mở tất cả hoặc mở theo batch size; có hiển thị tiến trình gọn nhẹ
 
-### Batch Opening
+### 2) Extractor (Trích xuất URL)
 
-- **Mở Tất Cả**: Mở toàn bộ URLs cùng lúc
-- **Open Each**: Mở URLs theo từng đợt (batch) với batch size tùy chỉnh, mỗi lần bấm mở một batch
-- Progress hiển thị tối giản: “Opened batch X of Y (a-b of N)” + thanh tiến trình mảnh
+- Liệt kê tab của cửa sổ hiện tại, chọn/bỏ chọn nhanh, filter theo URL
+- Xuất theo Template Format có tham số: `<id>`, `<idp>`, `<url>`, `<name>`
+- Preview dữ liệu theo template
 
-### Profile Management
+### 3) Block Site (Chặn domain)
 
-- Tạo và lưu nhiều profiles
-- Mỗi profile lưu: URL pattern, Start/End ID, generated URLs, batch size
-- Chuyển đổi nhanh giữa các profiles
-- Đổi tên và xóa profiles
-- Hiển thị profile đang active
-- Auto-save state hiện tại
-- Import/Export profile (JSON). Hỗ trợ Batch Import/Export qua menu (...)
+- Thêm/sửa/xóa domain chặn, lưu và áp dụng bằng `declarativeNetRequest`
+- Thêm hàng loạt (Bulk Add) với 1 domain mỗi dòng; hiển thị kết quả thành công/thất bại và hỗ trợ Copy
 
-### Local Storage
+### 4) Redirect (Chuyển hướng)
 
-- Sử dụng Chrome Storage API
-- Lưu trữ profiles và state local
-- Wrapper utilities tiện lợi
+- Tạo luật chuyển hướng từ `fromUrl` → `toUrl` (hỗ trợ wildcard ở `fromUrl`)
+- Thêm hàng loạt: mỗi dòng gồm 2 phần cách nhau bởi khoảng trắng `fromUrl toUrl`
+- Hiển thị kết quả thêm hàng loạt, cho phép Copy
+
+### 5) Profiles (Lưu cấu hình)
+
+- Tạo/nạp/xóa/đổi tên Profile; đánh dấu Profile đang Active
+- Import/Export JSON (hỗ trợ nhiều profile 1 lần)
+- Mỗi Profile hiện lưu:
+  - Batch URL state (pattern, start/end, generated, batch size,...)
+  - Extractor Export Format
+  - Danh sách Block Site (blocked domains)
+  - Danh sách Redirect Rules
+  - Mô tả Profile (description)
+
+### 6) Lưu trữ và đồng bộ
+
+- Lưu vào Chrome Storage; tự động khôi phục trạng thái và tab đang mở lần gần nhất
 
 ## 🛠️ Cài đặt Development
 
@@ -66,9 +75,13 @@ Build sẽ tạo thư mục `dist` chứa extension production-ready.
 
 Extension sẽ xuất hiện với icon SVG của app.
 
-## 🎯 Sử dụng
+## 🎯 Sử dụng nhanh
 
-Xem [📚 DOCS_INDEX.md](./DOCS_INDEX.md) để navigate qua tất cả tài liệu.
+1. Batch: nhập pattern `https://example.com/page/{id}`, nhập Start/End, tạo và mở theo batch
+2. Extractor: chọn các tab, chỉnh `Export Format` rồi Copy/Export
+3. Block Site: nhập domain hoặc dùng nút “Add multiple” để thêm hàng loạt, Save để áp dụng
+4. Redirect: nhập rule hoặc Import hàng loạt, Save để áp dụng
+5. Profiles: tạo Profile (có mô tả), Save Current để lưu tất cả cấu hình hiện tại; Import/Export JSON
 
 ## 📖 Documentation Index
 
@@ -95,12 +108,9 @@ Xem [📚 DOCS_INDEX.md](./DOCS_INDEX.md) để navigate qua tất cả tài li�
 
 ### Quick Start
 
-1. Click vào icon extension trên toolbar
-2. Nhập URL Pattern: `https://example.com/page/{id}`
-3. Nhập Start ID: `1` và End ID: `10`
-4. Click **Tạo Links**
-5. Chọn batch size (ví dụ: `8`)
-6. Click **Mở Theo Batch** để mở links theo nhóm
+1. Click icon extension trên toolbar
+2. Batch URL: điền pattern và mở theo nhu cầu
+3. Extractor/Block/Redirect: cấu hình và lưu vào Profile nếu cần
 
 ## 📂 Cấu trúc Project
 
@@ -112,9 +122,12 @@ heta/
 │   ├── icon48.png             # Icon 48x48
 │   └── icon128.png            # Icon 128x128
 ├── src/
-│   ├── tabs/                  # Tab/screens (high-level)
-│   │   ├── BatchUrl.jsx       # Batch URL tab (re-export)
-│   │   └── ProfileManager.jsx # Profiles tab (re-export)
+│   ├── tabs/                  # Tabs/Screens
+│   │   ├── BatchUrl.jsx       # Batch URL
+│   │   ├── Extractor.jsx      # Trích xuất URL + Export Format
+│   │   ├── BlockSite.jsx      # Chặn domain + Bulk Add
+│   │   ├── Redirect.jsx       # Redirect rules + Bulk Add
+│   │   └── ProfileManager.jsx # Quản lý Profiles
 │   ├── components/            # Reusable UI pieces
 │   │   ├── ProfileImportButton.jsx
 │   │   └── ProfileBulkActionsMenu.jsx
@@ -160,20 +173,15 @@ npm run build
 - **Chrome Storage API** - Local storage
 - **CSS3** - Styling với gradients và transitions
 
-## 📝 Tính năng Đã Implement
+## 📝 Đã hoàn thiện
 
-✅ Generate batch URLs từ pattern với {id}
-✅ Validate URL pattern và IDs
-✅ Mở tất cả URLs hoặc theo batch size
-✅ Progress tracking tối giản + thanh tiến trình mảnh
-✅ Textarea batch links có thể chỉnh sửa và cuộn bằng chuột
-✅ Batch Import/Export profiles qua menu (...)
-✅ Profile system với CRUD operations
-✅ Auto-save current state
-✅ Chrome Storage integration
-✅ Responsive UI với modern design
-✅ Error handling và validation
-✅ SVG icons với gradient
+✅ Generate Batch URLs từ pattern `{id}`/`{idp}` và mở theo batch
+✅ Extractor với Export Format, Preview
+✅ Block Site + Bulk Add, áp dụng với `declarativeNetRequest`
+✅ Redirect + Bulk Add, hỗ trợ wildcard ở `fromUrl`
+✅ Profiles lưu đầy đủ: Batch + Export Format + Block + Redirect + Description
+✅ Import/Export Profiles (JSON), Auto-save state
+✅ UI hiện đại, hiệu năng tốt; xử lý lỗi rõ ràng
 
 ## 🚀 Ví dụ Use Cases
 
@@ -187,6 +195,6 @@ npm run build
 
 MIT
 
-## 👨‍💻 Author
+## 👨‍💻 Tác giả
 
 Developed with ❤️

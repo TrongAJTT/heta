@@ -7,9 +7,9 @@ import {
   Typography,
 } from "@mui/material";
 
-const TabChecklist = ({ tabs, selectedIds, onToggleOne, maxHeight = 150 }) => {
+const TabChecklist = ({ tabs, selectedIds, onToggleOne, maxHeight }) => {
   return (
-    <Box sx={{ maxHeight, overflow: "auto", p: 1 }}>
+    <Box sx={{ ...(maxHeight && { maxHeight }), p: 1 }}>
       <Stack>
         {tabs.map((t) => (
           <Box sx={{ maxWidth: 600, width: "100%" }}>
