@@ -21,14 +21,19 @@ import SaveIcon from "@mui/icons-material/Save";
 import ClearIcon from "@mui/icons-material/Clear";
 import InfoIcon from "@mui/icons-material/Info";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import {
   getRedirectRules,
   saveRedirectRules,
-  updateRedirectRules,
+  updateRedirectRules as applyRedirectRulesToChrome,
 } from "../utils/redirectManager";
 import { RedirectValidator } from "../utils/redirectValidator";
+import {
+  createRedirectRule,
+  normalizeRedirectRules,
+} from "../models/redirectRuleModel";
 
 const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
   const [redirectRules, setRedirectRules] = useState(initialRules || []);
@@ -48,10 +53,19 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
     failed: [],
   });
 
+  const toHref = (value) => {
+    if (!value) return "#";
+    const v = value.trim();
+    if (v.startsWith("http://") || v.startsWith("https://")) return v;
+    const cleaned = v.replace(/^\*+/, "").replace(/\*+$/, "");
+    if (!cleaned) return "#";
+    return `https://${cleaned}`;
+  };
+
   // Update local state when prop changes
   useEffect(() => {
     if (initialRules) {
-      setRedirectRules(initialRules);
+      setRedirectRules(normalizeRedirectRules(initialRules));
     }
   }, [initialRules]);
 
@@ -93,12 +107,10 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
       return;
     }
 
-    const newRule = {
-      id: Date.now().toString(),
+    const newRule = createRedirectRule({
       fromUrl: validation.fromUrl,
       toUrl: validation.toUrl,
-      createdAt: new Date().toISOString(),
-    };
+    });
 
     updateRedirectRules([...redirectRules, newRule]);
     setFromUrl("");
@@ -136,7 +148,7 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
               ...rule,
               fromUrl: validation.fromUrl,
               toUrl: validation.toUrl,
-              updatedAt: new Date().toISOString(),
+              modifiedAt: new Date().toISOString(),
             }
           : rule
       )
@@ -159,7 +171,7 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
   const handleSaveRedirectList = async () => {
     try {
       await saveRedirectRules(redirectRules);
-      await updateRedirectRules(redirectRules);
+      await applyRedirectRulesToChrome(redirectRules);
       setSuccessMessage("Redirect rules applied successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -210,12 +222,11 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
 
       const validation = RedirectValidator.validate(from, to, newRules, null);
       if (validation.valid) {
-        const newRule = {
+        const newRule = createRedirectRule({
           id: Date.now().toString() + Math.random(),
           fromUrl: validation.fromUrl,
           toUrl: validation.toUrl,
-          createdAt: new Date().toISOString(),
-        };
+        });
         newRules.push(newRule);
         success.push({ fromUrl: validation.fromUrl, toUrl: validation.toUrl });
       } else {
@@ -451,10 +462,23 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
                           alignItems="center"
                           spacing={0.75}
                         >
-                          <Typography variant="body2" fontWeight={600} noWrap>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            noWrap
+                            component="a"
+                            href={toHref(rule.fromUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              textDecoration: "none",
+                              color: "inherit",
+                              "&:hover": { textDecoration: "underline" },
+                            }}
+                          >
                             {rule.fromUrl}
                           </Typography>
-                          <SwapHorizIcon
+                          <ArrowForwardIcon
                             fontSize="small"
                             color="action"
                             sx={{ opacity: 0.6 }}
@@ -464,6 +488,10 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
                             color="primary"
                             sx={{ wordBreak: "break-all" }}
                             noWrap
+                            component="a"
+                            href={toHref(rule.toUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
                             {rule.toUrl}
                           </Typography>
@@ -473,14 +501,9 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
                           color="text.secondary"
                           noWrap
                         >
-                          Added: {new Date(rule.createdAt).toLocaleString()}
-                          {rule.updatedAt && (
-                            <>
-                              {" "}
-                              | Updated:{" "}
-                              {new Date(rule.updatedAt).toLocaleString()}
-                            </>
-                          )}
+                          {`Modified: ${new Date(
+                            rule.modifiedAt
+                          ).toLocaleString()}`}
                         </Typography>
                       </Stack>
                       <Stack direction="row" spacing={0.5}>

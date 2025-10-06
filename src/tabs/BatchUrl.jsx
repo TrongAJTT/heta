@@ -16,17 +16,18 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
-  generateUrls,
   openAllUrls,
   openSingleBatch,
   calculateBatchInfo,
 } from "../utils/urlUtils";
 import {
   BatchUrlGenerator,
-  UrlPatternManager,
-  BatchUrlFactory,
   BATCH_URL_CONSTANTS,
 } from "../utils/batchUrlGenerator";
+import {
+  normalizeBatchUrlState,
+  createBatchUrlState,
+} from "../models/batchUrlModel";
 
 const BatchUrl = ({ currentState, onStateChange }) => {
   const [urlPattern, setUrlPattern] = useState("");
@@ -43,13 +44,14 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
   // Load state from props
   useEffect(() => {
-    if (currentState) {
-      const urls = currentState.generatedUrls || [];
-      const bs = currentState.batchSize || 8;
-      const opened = currentState.currentOpenIndex || 0;
-      setUrlPattern(currentState.urlPattern || "");
-      setStartId(currentState.startId || "");
-      setEndId(currentState.endId || "");
+    if (currentState && currentState.batchUrl) {
+      const normalized = normalizeBatchUrlState(currentState.batchUrl);
+      const urls = normalized.generatedUrls;
+      const bs = normalized.batchSize;
+      const opened = normalized.currentOpenIndex;
+      setUrlPattern(normalized.urlPattern);
+      setStartId(normalized.startId);
+      setEndId(normalized.endId);
       setGeneratedUrls(urls);
       setBatchSize(bs);
       setCurrentOpenIndex(opened);
@@ -96,14 +98,17 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       setProgress(null);
       setCurrentOpenIndex(0); // Reset progress when generating new URLs
 
-      // Lưu state khi tạo link
+      // Save full state with nested batchUrl
       onStateChange({
-        urlPattern,
-        startId,
-        endId,
-        generatedUrls: urls,
-        batchSize,
-        currentOpenIndex: 0,
+        ...currentState,
+        batchUrl: {
+          urlPattern,
+          startId,
+          endId,
+          generatedUrls: urls,
+          batchSize,
+          currentOpenIndex: 0,
+        },
       });
     } catch (err) {
       setError(err.message);
@@ -141,14 +146,17 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       setProgress({
         message: "All URLs have been opened. Resetting to start.",
       });
-      // Save reset state
+      // Save reset state under batchUrl
       onStateChange({
-        urlPattern,
-        startId,
-        endId,
-        generatedUrls,
-        batchSize,
-        currentOpenIndex: 0,
+        ...currentState,
+        batchUrl: {
+          urlPattern,
+          startId,
+          endId,
+          generatedUrls,
+          batchSize,
+          currentOpenIndex: 0,
+        },
       });
       return;
     }
@@ -189,14 +197,17 @@ const BatchUrl = ({ currentState, onStateChange }) => {
         rangeEnd: lastRangeEnd,
       });
 
-      // Save state with progress
+      // Save state with progress under batchUrl
       onStateChange({
-        urlPattern,
-        startId,
-        endId,
-        generatedUrls,
-        batchSize,
-        currentOpenIndex: result.newIndex,
+        ...currentState,
+        batchUrl: {
+          urlPattern,
+          startId,
+          endId,
+          generatedUrls,
+          batchSize,
+          currentOpenIndex: result.newIndex,
+        },
       });
     } catch (error) {
       console.error("Error in batch opening:", error);

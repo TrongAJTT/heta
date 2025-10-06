@@ -1,143 +1,111 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import BatchUrl from "./tabs/BatchUrl";
 import ProfileManager from "./tabs/ProfileManager";
 import Extractor from "./tabs/Extractor";
 import BlockSite from "./tabs/BlockSite";
 import Redirect from "./tabs/Redirect";
+import { TABS, TAB_LABELS, APP_NAME, DEFAULT_EXPORT_FORMAT } from "./constants";
 import {
-  getCurrentState,
-  saveCurrentState,
   getActiveTab,
   saveActiveTab,
+  getCurrentState,
+  saveCurrentState,
 } from "./utils/storage";
 import "./App.css";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("batch-url");
+  const [activeTab, setActiveTab] = useState(TABS.BATCH_URL);
   const [currentState, setCurrentState] = useState({});
 
   // Settings for other tabs
-  const [exportFormat, setExportFormat] = useState("<url>");
+  const [exportFormat, setExportFormat] = useState(DEFAULT_EXPORT_FORMAT);
   const [blockedDomains, setBlockedDomains] = useState([]);
   const [redirectRules, setRedirectRules] = useState([]);
 
+  // Load initial state
   useEffect(() => {
-    loadCurrentState();
-    loadActiveTab();
+    const loadData = async () => {
+      const savedTab = await getActiveTab();
+      if (savedTab) setActiveTab(savedTab);
+
+      const state = await getCurrentState();
+      if (state) {
+        setCurrentState(state);
+        if (state.exportFormat) setExportFormat(state.exportFormat);
+        if (state.blockedDomains) setBlockedDomains(state.blockedDomains);
+        if (state.redirectRules) setRedirectRules(state.redirectRules);
+      }
+    };
+    loadData();
   }, []);
 
-  const loadCurrentState = async () => {
-    const state = await getCurrentState();
-    if (state) {
-      setCurrentState(state);
-      // Load settings for other tabs
-      if (state.exportFormat) setExportFormat(state.exportFormat);
-      if (state.blockedDomains) setBlockedDomains(state.blockedDomains);
-      if (state.redirectRules) setRedirectRules(state.redirectRules);
-    }
-  };
-
-  const loadActiveTab = async () => {
-    const savedTab = await getActiveTab();
-    if (savedTab) {
-      setActiveTab(savedTab);
-    }
-  };
-
-  const handleStateChange = async (newState) => {
+  const handleStateChange = useCallback(async (newState) => {
     setCurrentState(newState);
     await saveCurrentState(newState);
-  };
+  }, []);
 
-  const handleSettingsChange = (settings) => {
-    // Update individual settings
-    if (settings.exportFormat !== undefined)
-      setExportFormat(settings.exportFormat);
-    if (settings.blockedDomains !== undefined)
-      setBlockedDomains(settings.blockedDomains);
-    if (settings.redirectRules !== undefined)
-      setRedirectRules(settings.redirectRules);
+  const handleSettingsChange = useCallback(
+    async (settings) => {
+      // Update individual settings
+      if (settings.exportFormat !== undefined)
+        setExportFormat(settings.exportFormat);
+      if (settings.blockedDomains !== undefined)
+        setBlockedDomains(settings.blockedDomains);
+      if (settings.redirectRules !== undefined)
+        setRedirectRules(settings.redirectRules);
 
-    // Save to storage
-    const updatedState = {
-      ...currentState,
-      ...settings,
-    };
-    setCurrentState(updatedState);
-    saveCurrentState(updatedState);
-  };
+      // Save to storage
+      const updatedState = { ...currentState, ...settings };
+      setCurrentState(updatedState);
+      await saveCurrentState(updatedState);
+    },
+    [currentState]
+  );
 
-  const handleLoadProfile = (profileData) => {
+  const handleLoadProfile = useCallback(async (profileData) => {
     setCurrentState(profileData);
-    saveCurrentState(profileData);
+    await saveCurrentState(profileData);
 
     // Load settings for other tabs
-    if (profileData.exportFormat) setExportFormat(profileData.exportFormat);
-    else setExportFormat("<url>");
+    setExportFormat(profileData.exportFormat || DEFAULT_EXPORT_FORMAT);
+    setBlockedDomains(profileData.blockedDomains || []);
+    setRedirectRules(profileData.redirectRules || []);
+  }, []);
 
-    if (profileData.blockedDomains)
-      setBlockedDomains(profileData.blockedDomains);
-    else setBlockedDomains([]);
-
-    if (profileData.redirectRules) setRedirectRules(profileData.redirectRules);
-    else setRedirectRules([]);
-  };
-
-  const handleTabChange = (tabName) => {
+  const handleTabChange = useCallback(async (tabName) => {
     setActiveTab(tabName);
-    saveActiveTab(tabName);
-  };
+    await saveActiveTab(tabName);
+  }, []);
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>
           <img src="/icon16.png" alt="Heta" className="app-logo" />
-          Heta - Tab Helper
+          {APP_NAME}
         </h1>
       </header>
 
       <div className="tabs">
-        <button
-          className={`tab ${activeTab === "batch-url" ? "active" : ""}`}
-          onClick={() => handleTabChange("batch-url")}
-        >
-          Batch
-        </button>
-        <button
-          className={`tab ${activeTab === "extractor" ? "active" : ""}`}
-          onClick={() => handleTabChange("extractor")}
-        >
-          Extractor
-        </button>
-        <button
-          className={`tab ${activeTab === "block-site" ? "active" : ""}`}
-          onClick={() => handleTabChange("block-site")}
-        >
-          Block Site
-        </button>
-        <button
-          className={`tab ${activeTab === "redirect" ? "active" : ""}`}
-          onClick={() => handleTabChange("redirect")}
-        >
-          Redirect
-        </button>
-        <button
-          className={`tab ${activeTab === "profiles" ? "active" : ""}`}
-          onClick={() => handleTabChange("profiles")}
-        >
-          Profiles
-        </button>
+        {Object.entries(TABS).map(([key, value]) => (
+          <button
+            key={value}
+            className={`tab ${activeTab === value ? "active" : ""}`}
+            onClick={() => handleTabChange(value)}
+          >
+            {TAB_LABELS[value]}
+          </button>
+        ))}
       </div>
 
       <div className="tab-content">
-        {activeTab === "batch-url" && (
+        {activeTab === TABS.BATCH_URL && (
           <BatchUrl
             currentState={currentState}
             onStateChange={handleStateChange}
           />
         )}
-        {activeTab === "profiles" && (
+        {activeTab === TABS.PROFILES && (
           <ProfileManager
             currentState={{
               ...currentState,
@@ -148,7 +116,7 @@ function App() {
             onLoadProfile={handleLoadProfile}
           />
         )}
-        {activeTab === "extractor" && (
+        {activeTab === TABS.EXTRACTOR && (
           <Extractor
             exportFormat={exportFormat}
             onExportFormatChange={(format) =>
@@ -156,7 +124,7 @@ function App() {
             }
           />
         )}
-        {activeTab === "block-site" && (
+        {activeTab === TABS.BLOCK_SITE && (
           <BlockSite
             blockedDomains={blockedDomains}
             onBlockedDomainsChange={(domains) =>
@@ -164,7 +132,7 @@ function App() {
             }
           />
         )}
-        {activeTab === "redirect" && (
+        {activeTab === TABS.REDIRECT && (
           <Redirect
             redirectRules={redirectRules}
             onRedirectRulesChange={(rules) =>

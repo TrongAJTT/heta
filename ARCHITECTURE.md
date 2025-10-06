@@ -15,12 +15,47 @@ heta/
 │
 ├── src/                        # Source code
 │   ├── components/            # React components
-│   │   ├── BatchUrl.jsx      # Batch URL generator & opener component
-│   │   └── ProfileManager.jsx # Profile management component
+│   │   ├── ProfileBulkActionsMenu.jsx
+│   │   ├── ProfileImportButton.jsx
+│   │   ├── TabChecklist.jsx
+│   │   └── ErrorBoundary.jsx  # Error boundary wrapper
+│   │
+│   ├── tabs/                  # Tab components
+│   │   ├── BatchUrl.jsx       # Batch URL generator
+│   │   ├── Extractor.jsx      # URL extractor
+│   │   ├── BlockSite.jsx      # Site blocker
+│   │   ├── Redirect.jsx       # URL redirector
+│   │   └── ProfileManager.jsx # Profile management
+│   │
+│   ├── models/                # Data models
+│   │   ├── profileModel.js
+│   │   ├── batchUrlModel.js
+│   │   ├── blockDomainModel.js
+│   │   └── redirectRuleModel.js
 │   │
 │   ├── utils/                 # Utility functions
-│   │   ├── storage.js        # Chrome Storage API wrapper
-│   │   └── urlUtils.js       # URL generation & opening utilities
+│   │   ├── storage.js         # Storage abstraction
+│   │   ├── urlUtils.js        # URL utilities
+│   │   ├── profileIO.js       # Profile import/export
+│   │   ├── validation.js      # Validation helpers
+│   │   ├── batchUrlGenerator.js
+│   │   ├── blockSite.js
+│   │   ├── domainValidator.js
+│   │   ├── exportFormatProcessor.js
+│   │   ├── redirectManager.js
+│   │   ├── redirectValidator.js
+│   │   └── tabs.js
+│   │
+│   ├── hooks/                 # Custom React hooks
+│   │   ├── useLocalStorage.js # Auto-sync localStorage hook
+│   │   ├── useProfiles.js     # Profile management hook
+│   │   └── index.js
+│   │
+│   ├── constants/             # Constants & configurations
+│   │   ├── app.js             # App-wide constants
+│   │   └── index.js
+│   │
+│   ├── contexts/              # React contexts (future)
 │   │
 │   ├── App.jsx               # Main application component
 │   ├── App.css              # Application styles
@@ -30,23 +65,14 @@ heta/
 ├── index.html                 # HTML template
 ├── vite.config.js            # Vite build configuration
 ├── package.json              # Dependencies & scripts
-├── .gitignore                # Git ignore rules
-│
-└── Documentation/             # All documentation files
-    ├── README.md             # Project overview & getting started
-    ├── QUICKSTART.md         # 5-minute quick start guide
-    ├── USAGE.md              # Detailed usage instructions
-    ├── EXAMPLES.md           # Real-world examples & troubleshooting
-    ├── TEST_CASES.md         # Comprehensive test cases
-    ├── BUILD.md              # Build & deployment guide
-    ├── CHANGELOG.md          # Version history
-    ├── CONTRIBUTING.md       # Contribution guidelines
-    └── LICENSE               # MIT License
+├── ARCHITECTURE.md           # This file
+├── OPTIMIZATION_SUMMARY.md   # Recent optimization details
+├── QUICKSTART.md
+├── README.md
+└── .gitignore
 ```
 
 ## 🏗️ Architecture
-
-### Component Hierarchy
 
 ```
 App (main.jsx)

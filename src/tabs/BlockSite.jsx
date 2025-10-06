@@ -34,6 +34,10 @@ import {
   updateBlockRules,
 } from "../utils/blockSite";
 import { DomainValidator } from "../utils/domainValidator";
+import {
+  createBlockedDomain,
+  normalizeBlockedDomains,
+} from "../models/blockDomainModel";
 
 const BlockSite = ({
   blockedDomains: initialDomains,
@@ -57,7 +61,7 @@ const BlockSite = ({
   // Update local state when prop changes
   useEffect(() => {
     if (initialDomains) {
-      setBlockedDomains(initialDomains);
+      setBlockedDomains(normalizeBlockedDomains(initialDomains));
     }
   }, [initialDomains]);
 
@@ -99,11 +103,7 @@ const BlockSite = ({
       return;
     }
 
-    const newEntry = {
-      id: Date.now().toString(),
-      domain: validation.domain,
-      createdAt: new Date().toISOString(),
-    };
+    const newEntry = createBlockedDomain({ domain: validation.domain });
 
     const updatedDomains = [...blockedDomains, newEntry];
     updateBlockedDomains(updatedDomains);
@@ -148,7 +148,7 @@ const BlockSite = ({
         ? {
             ...d,
             domain: validation.domain,
-            updatedAt: new Date().toISOString(),
+            modifiedAt: new Date().toISOString(),
           }
         : d
     );
@@ -214,11 +214,7 @@ const BlockSite = ({
     lines.forEach((domain) => {
       const validation = DomainValidator.validate(domain, newDomains, null);
       if (validation.valid) {
-        const newEntry = {
-          id: Date.now().toString() + Math.random(),
-          domain: validation.domain,
-          createdAt: new Date().toISOString(),
-        };
+        const newEntry = createBlockedDomain({ domain: validation.domain });
         newDomains.push(newEntry);
         success.push(validation.domain);
       } else {
@@ -429,14 +425,9 @@ const BlockSite = ({
                           color="text.secondary"
                           noWrap
                         >
-                          Added: {new Date(domain.createdAt).toLocaleString()}
-                          {domain.updatedAt && (
-                            <>
-                              {" "}
-                              | Updated:{" "}
-                              {new Date(domain.updatedAt).toLocaleString()}
-                            </>
-                          )}
+                          {`Modified: ${new Date(
+                            domain.modifiedAt
+                          ).toLocaleString()}`}
                         </Typography>
                       </Stack>
                       <Stack direction="row" spacing={0.5}>

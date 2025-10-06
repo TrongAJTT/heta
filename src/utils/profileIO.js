@@ -38,10 +38,9 @@ export const normalizeImportedProfile = (raw, existingProfiles) => {
   );
   const id = ensureUniqueId(base.id, ids);
   const name = ensureUniqueName(base.name, names);
-  const createdAt = base.createdAt || new Date().toISOString();
-  const updatedAt = new Date().toISOString();
+  const modifiedAt = base.modifiedAt || new Date().toISOString();
   const data = base.data && typeof base.data === "object" ? base.data : {};
-  return { id, name, createdAt, updatedAt, data };
+  return { id, name, modifiedAt, data };
 };
 
 export const importProfilesFromJsonText = async (jsonText) => {
@@ -65,14 +64,46 @@ export const importProfilesFromJsonText = async (jsonText) => {
   return count;
 };
 
+/**
+ * Clean profile data before export
+ * Removes redundant fields that are already in nested structures
+ * @param {object} data - Profile data
+ * @returns {object} Cleaned data
+ */
+const cleanProfileData = (data) => {
+  if (!data || typeof data !== "object") return {};
+
+  const cleaned = { ...data };
+
+  // Remove redundant batch URL fields (they're already in batchUrl object)
+  delete cleaned.batchSize;
+  delete cleaned.generatedUrls;
+  delete cleaned.startId;
+  delete cleaned.endId;
+  delete cleaned.urlPattern;
+  delete cleaned.currentOpenIndex;
+
+  return cleaned;
+};
+
+export { cleanProfileData };
+
 export const exportAllProfilesToFile = async (filename = "profiles.json") => {
   const profiles = await getAllProfiles();
-  triggerDownload(profiles, filename);
-  return profiles.length;
+  const normalized = profiles.map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    modifiedAt: p.modifiedAt,
+    data: cleanProfileData(p.data),
+  }));
+  triggerDownload(normalized, filename);
+  return normalized.length;
 };
 
 export default {
   normalizeImportedProfile,
   importProfilesFromJsonText,
   exportAllProfilesToFile,
+  cleanProfileData,
 };

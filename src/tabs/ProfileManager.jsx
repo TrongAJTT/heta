@@ -17,6 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DownloadIcon from "@mui/icons-material/Download";
 import ProfileImportButton from "../components/ProfileImportButton";
 import ProfileBulkActionsMenu from "../components/ProfileBulkActionsMenu";
+import { createProfile, normalizeProfile } from "../models/profileModel";
 import {
   getAllProfiles,
   saveProfile,
@@ -24,6 +25,7 @@ import {
   getActiveProfileId,
   setActiveProfileId,
 } from "../utils/storage";
+import { cleanProfileData } from "../utils/profileIO";
 
 const ProfileManager = ({ currentState, onLoadProfile }) => {
   const [profiles, setProfiles] = useState([]);
@@ -39,7 +41,8 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
 
   const loadProfiles = async () => {
     const allProfiles = await getAllProfiles();
-    setProfiles(allProfiles);
+    const normalized = (allProfiles || []).map((p) => normalizeProfile(p));
+    setProfiles(normalized);
   };
 
   const loadActiveProfile = async () => {
@@ -70,13 +73,11 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
       return;
     }
 
-    const newProfile = {
-      id: Date.now().toString(),
+    const newProfile = createProfile({
       name: trimmedName,
       description: trimmedDescription,
-      createdAt: new Date().toISOString(),
       data: currentState || {},
-    };
+    });
 
     await saveProfile(newProfile);
     await setActiveProfileId(newProfile.id);
@@ -93,7 +94,8 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
     const profile = profiles.find((p) => p.id === activeProfileId);
     if (profile) {
       profile.data = currentState;
-      profile.updatedAt = new Date().toISOString();
+      const nowIso = new Date().toISOString();
+      profile.modifiedAt = nowIso;
       await saveProfile(profile);
       await loadProfiles();
     }
@@ -123,7 +125,8 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
     const profile = profiles.find((p) => p.id === profileId);
     if (profile && newName.trim()) {
       profile.name = newName.trim();
-      profile.updatedAt = new Date().toISOString();
+      const nowIso = new Date().toISOString();
+      profile.modified = nowIso;
       await saveProfile(profile);
       await loadProfiles();
     }
@@ -160,9 +163,16 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                         (p) => p.id === activeProfileId
                       );
                       if (profile) {
+                        // Clean profile data before export
+                        const cleanedProfile = {
+                          ...profile,
+                          data: cleanProfileData(profile.data),
+                        };
                         const dataStr =
                           "data:text/json;charset=utf-8," +
-                          encodeURIComponent(JSON.stringify(profile, null, 2));
+                          encodeURIComponent(
+                            JSON.stringify(cleanedProfile, null, 2)
+                          );
                         const downloadAnchorNode = document.createElement("a");
                         downloadAnchorNode.setAttribute("href", dataStr);
                         downloadAnchorNode.setAttribute(
@@ -340,17 +350,9 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                       </Typography>
                     )}
                     <Typography variant="caption" color="text.secondary" noWrap>
-                      Created:{" "}
-                      {new Date(profile.createdAt).toLocaleDateString("en-US")}
-                      {profile.updatedAt && (
-                        <>
-                          {" "}
-                          | Updated:{" "}
-                          {new Date(profile.updatedAt).toLocaleDateString(
-                            "en-US"
-                          )}
-                        </>
-                      )}
+                      {`Modified: ${new Date(profile.modifiedAt).toLocaleString(
+                        "en-US"
+                      )}`}
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={0.5}>
