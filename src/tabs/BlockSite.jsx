@@ -8,26 +8,20 @@ import {
   Stack,
   Paper,
   Tooltip,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Divider,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
-import BlockIcon from "@mui/icons-material/Block";
 import ClearIcon from "@mui/icons-material/Clear";
 import InfoIcon from "@mui/icons-material/Info";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
   getBlockedDomains,
   saveBlockedDomains,
@@ -246,10 +240,7 @@ const BlockSite = ({
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography variant="h6">
-            <BlockIcon sx={{ verticalAlign: "middle", mr: 1 }} />
-            Block Site Manager
-          </Typography>
+          <Typography variant="h6">Block Site Manager</Typography>
           <Stack direction="row" spacing={1}>
             <Tooltip title="About Block Site feature">
               <IconButton
@@ -360,7 +351,7 @@ const BlockSite = ({
         <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
           {blockedDomains.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
-              <BlockIcon
+              <ArrowForwardIcon
                 sx={{ fontSize: 48, color: "text.secondary", opacity: 0.5 }}
               />
               <Typography color="text.secondary" sx={{ mt: 2 }}>

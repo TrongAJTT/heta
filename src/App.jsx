@@ -7,6 +7,13 @@ import Redirect from "./tabs/Redirect";
 import Instance from "./tabs/Instance";
 import AboutDialog from "./components/AboutDialog";
 import { TABS, TAB_LABELS, APP_NAME, DEFAULT_EXPORT_FORMAT } from "./constants";
+import IosShareIcon from "@mui/icons-material/IosShare";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import BlockIcon from "@mui/icons-material/Block";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import WorkspacesIcon from "@mui/icons-material/Workspaces";
+import PersonIcon from "@mui/icons-material/Person";
+import Tooltip from "@mui/material/Tooltip";
 import {
   getActiveTab,
   saveActiveTab,
@@ -108,14 +115,46 @@ function App() {
       </header>
 
       <div className="tabs">
-        {Object.entries(TABS).map(([key, value]) => (
-          <button
-            key={value}
-            className={`tab ${activeTab === value ? "active" : ""}`}
-            onClick={() => handleTabChange(value)}
-          >
-            {TAB_LABELS[value]}
-          </button>
+        {[
+          {
+            value: TABS.BATCH_URL,
+            icon: <FormatListNumberedIcon />,
+            title: TAB_LABELS[TABS.BATCH_URL],
+          },
+          {
+            value: TABS.EXTRACTOR,
+            icon: <IosShareIcon />,
+            title: TAB_LABELS[TABS.EXTRACTOR],
+          },
+          {
+            value: TABS.BLOCK_SITE,
+            icon: <BlockIcon />,
+            title: TAB_LABELS[TABS.BLOCK_SITE],
+          },
+          {
+            value: TABS.REDIRECT,
+            icon: <ArrowForwardIcon />,
+            title: TAB_LABELS[TABS.REDIRECT],
+          },
+          {
+            value: TABS.INSTANCE,
+            icon: <WorkspacesIcon />,
+            title: TAB_LABELS[TABS.INSTANCE],
+          },
+          {
+            value: TABS.PROFILES,
+            icon: <PersonIcon />,
+            title: TAB_LABELS[TABS.PROFILES],
+          },
+        ].map(({ value, icon, title }) => (
+          <Tooltip key={value} title={title} placement="bottom">
+            <button
+              className={`tab ${activeTab === value ? "active" : ""}`}
+              onClick={() => handleTabChange(value)}
+            >
+              {icon}
+            </button>
+          </Tooltip>
         ))}
       </div>
 

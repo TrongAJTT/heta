@@ -13,20 +13,17 @@ import {
   DialogContent,
   DialogActions,
   Chip,
-  Alert,
   CircularProgress,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Badge,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
-import TabIcon from "@mui/icons-material/Tab";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -350,7 +347,6 @@ const Instance = () => {
           justifyContent="space-between"
         >
           <Stack direction="row" alignItems="center" spacing={1}>
-            <TabIcon />
             <Typography variant="h6">Instance Manager</Typography>
           </Stack>
           <Stack direction="row" spacing={1}>

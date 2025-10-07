@@ -8,7 +8,6 @@ import {
   Stack,
   Paper,
   Tooltip,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,7 +19,6 @@ import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import ClearIcon from "@mui/icons-material/Clear";
 import InfoIcon from "@mui/icons-material/Info";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -259,7 +257,6 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
           justifyContent="space-between"
         >
           <Stack direction="row" alignItems="center" spacing={1}>
-            <SwapHorizIcon />
             <Typography variant="h6">Redirect Manager</Typography>
           </Stack>
           <Stack direction="row" spacing={1}>
