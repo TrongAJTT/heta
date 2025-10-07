@@ -5,14 +5,26 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: none;
+  outline: none;
+  /* Prevent any subpixel rendering issues */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .app-header {
-  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  /* Beautiful gradient that works well with white logo */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   color: white;
   padding: 12px 16px;
-  text-align: left;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  position: relative;
+  /* Ensure full width without transparent pixels */
+  margin: 0;
+  border: none;
 }
 
 .app-header h1 {
@@ -22,11 +34,44 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* Ensure text is crisp on gradient */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.about-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.about-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.about-button:active {
+  transform: scale(0.95);
+}
+
+.about-button svg {
+  display: block;
 }
 
 .app-logo {
   width: 20px;
   height: 20px;
+  /* Ensure logo is visible on gradient */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 /* Tabs */
@@ -64,8 +109,30 @@
 .tab-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
-  height: 0; /* This forces the flex item to respect the container height */
+  height: 0;
+  /* Prevent scrollbar from creating visual artifacts */
+  border: none;
+  outline: none;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 
 /* Form Elements */

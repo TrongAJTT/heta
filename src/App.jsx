@@ -5,6 +5,7 @@ import Extractor from "./tabs/Extractor";
 import BlockSite from "./tabs/BlockSite";
 import Redirect from "./tabs/Redirect";
 import Instance from "./tabs/Instance";
+import AboutDialog from "./components/AboutDialog";
 import { TABS, TAB_LABELS, APP_NAME, DEFAULT_EXPORT_FORMAT } from "./constants";
 import {
   getActiveTab,
@@ -17,6 +18,7 @@ import "./App.css";
 function App() {
   const [activeTab, setActiveTab] = useState(TABS.BATCH_URL);
   const [currentState, setCurrentState] = useState({});
+  const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
 
   // Settings for other tabs
   const [exportFormat, setExportFormat] = useState(DEFAULT_EXPORT_FORMAT);
@@ -85,6 +87,24 @@ function App() {
           <img src="/icon16.png" alt="Heta" className="app-logo" />
           {APP_NAME}
         </h1>
+        <button
+          className="about-button"
+          onClick={() => setAboutDialogOpen(true)}
+          title="About Heta"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
       </header>
 
       <div className="tabs">
@@ -143,6 +163,11 @@ function App() {
           />
         )}
       </div>
+
+      <AboutDialog
+        open={aboutDialogOpen}
+        onClose={() => setAboutDialogOpen(false)}
+      />
     </div>
   );
 }

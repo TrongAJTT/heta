@@ -498,7 +498,7 @@ const BlockSite = ({
           "Both incoming and outgoing requests are blocked",
         ]}
         additionalFeatures={[
-          "Block main domains and all subdomains (e.g., facebook.com blocks www.facebook.com)",
+          "Block main domains and all subdomains (e.g., example.com blocks www.example.com)",
           "Block all resource types (pages, scripts, images, etc.)",
           "Edit or remove domains from your block list",
           "Clear all domains at once with the Clear button",
@@ -514,29 +514,16 @@ const BlockSite = ({
       >
         <DialogTitle>Add Multiple Domains</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+          <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
-              Enter each domain on a new line. Example:
+              Enter each domain on a new line.
             </Typography>
-            <Box
-              sx={{
-                bgcolor: "grey.50",
-                p: 1,
-                borderRadius: 1,
-                fontSize: "0.875rem",
-                fontFamily: "monospace",
-              }}
-            >
-              <div>example.com</div>
-              <div>google.com</div>
-              <div>facebook.com</div>
-            </Box>
             <TextField
               multiline
               rows={10}
               value={bulkAddInput}
               onChange={(e) => setBulkAddInput(e.target.value)}
-              placeholder="example.com&#10;google.com&#10;facebook.com"
+              placeholder="example.com&#10;example.org&#10;example.net"
               fullWidth
               sx={{
                 fontFamily: "monospace",

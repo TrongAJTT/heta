@@ -2,17 +2,24 @@
  * Instance-related constants
  */
 
+// 15 soft pastel-like colors for better visibility
 export const INSTANCE_COLORS = [
-  "#1976d2", // Blue
-  "#388e3c", // Green
-  "#d32f2f", // Red
-  "#f57c00", // Orange
-  "#7b1fa2", // Purple
-  "#0097a7", // Cyan
-  "#c2185b", // Pink
-  "#5d4037", // Brown
-  "#455a64", // Blue Grey
-  "#303f9f", // Indigo
+  "#000000", // Black
+  "#42A5F5", // Blue 400
+  "#66BB6A", // Green 400
+  "#EF5350", // Red 400
+  "#FFA726", // Orange 400
+  "#AB47BC", // Purple 400
+  "#26C6DA", // Cyan 400
+  "#EC407A", // Pink 400
+  "#8D6E63", // Brown 400
+  "#78909C", // Blue Grey 400
+  "#5C6BC0", // Indigo 400
+  "#FFEE58", // Yellow 400
+  "#D4E157", // Lime 400
+  "#29B6F6", // Light Blue 400
+  "#7E57C2", // Deep Purple 400
+  "#FFCA28", // Amber 400
 ];
 
 export const INSTANCE_ICONS = [
@@ -30,7 +37,7 @@ export const INSTANCE_ICONS = [
 
 export const DEFAULT_INSTANCE = {
   NAME: "Default Instance",
-  COLOR: "#1976d2",
+  COLOR: INSTANCE_COLORS[0],
   ICON: "WorkspacesIcon",
 };
 

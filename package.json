@@ -1,10 +1,10 @@
 {
-  "name": "heta-batch-url-extension",
+  "name": "Heta - Tab Helper",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Browser extension for batch URL generation and management with profiles",
-  "author": "GitHub Copilot",
+  "description": "Tab helper utilities for browser that may match your needs: batch URL generator, URL extractor, site blocker, URL redirect rules, multi-instance workspace switcher and profile manager.",
+  "author": "TrongAJTT",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

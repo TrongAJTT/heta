@@ -588,24 +588,11 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
       >
         <DialogTitle>Add Multiple Redirect Rules</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+          <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
               Enter each redirect rule on a new line (fromUrl and toUrl
-              separated by space). Example:
+              separated by space).
             </Typography>
-            <Box
-              sx={{
-                bgcolor: "grey.50",
-                p: 1,
-                borderRadius: 1,
-                fontSize: "0.875rem",
-                fontFamily: "monospace",
-              }}
-            >
-              <div>old.example.com https://new.example.com</div>
-              <div>*.ads.com https://blank.page</div>
-              <div>example.com https://example.net</div>
-            </Box>
             <TextField
               multiline
               rows={10}

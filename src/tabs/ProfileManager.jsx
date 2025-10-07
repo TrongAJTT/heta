@@ -9,6 +9,10 @@ import {
   Tooltip,
   Paper,
   Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -37,6 +41,10 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
   const [newProfileDescription, setNewProfileDescription] = useState("");
   const [showNewProfileInput, setShowNewProfileInput] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   useEffect(() => {
     loadProfiles();
@@ -411,16 +419,15 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                         </IconButton>
                       </span>
                     </Tooltip>
-                    <Tooltip title="Rename">
+                    <Tooltip title="Edit">
                       <IconButton
                         color="secondary"
                         size="small"
                         onClick={() => {
-                          const newName = prompt(
-                            "Enter new name:",
-                            profile.name
-                          );
-                          if (newName) handleRenameProfile(profile.id, newName);
+                          setEditingProfile(profile);
+                          setEditName(profile.name || "");
+                          setEditDescription(profile.description || "");
+                          setEditDialogOpen(true);
                         }}
                       >
                         <EditIcon fontSize="small" />
@@ -541,6 +548,60 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
         ]}
         note="Profiles contain all your extension settings including redirect rules, blocked domains, batch URLs, and instance data."
       />
+
+      {/* Edit Profile Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ px: 2, py: 1.5 }}>Edit Profile</DialogTitle>
+        <DialogContent sx={{ px: 2, pt: 1.5, pb: 0.5, overflow: "visible" }}>
+          <Stack spacing={1.25}>
+            <TextField
+              label="Name"
+              size="small"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              autoFocus
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              size="small"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2, py: 1.5 }}>
+          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (!editingProfile) return;
+              const trimmedName = (editName || "").trim();
+              if (!trimmedName) return;
+              const updated = {
+                ...editingProfile,
+                name: trimmedName,
+                description: editDescription || "",
+                modifiedAt: new Date().toISOString(),
+              };
+              await saveProfile(updated);
+              setEditDialogOpen(false);
+              setEditingProfile(null);
+              await loadProfiles();
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
