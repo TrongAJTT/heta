@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   getAllInstances,
   saveInstance,
   deleteInstance,
-  getCurrentInstanceId,
-  setCurrentInstanceId,
   saveCurrentTabsToInstance,
-  switchToInstance,
+  openInstanceTabs,
   createNewInstance,
   initializeInstanceSystem,
 } from "../utils/instanceManager";
-import { normalizeInstance } from "../models/instanceModel";
+import {
+  normalizeInstance,
+  getMostRecentlySaved,
+  getMostRecentlyOpened,
+} from "../models/instanceModel";
 
 /**
  * Custom hook for managing instances
@@ -18,9 +20,18 @@ import { normalizeInstance } from "../models/instanceModel";
  */
 export const useInstances = () => {
   const [instances, setInstances] = useState([]);
-  const [currentInstanceId, setCurrentInstance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Computed: most recently saved instance
+  const mostRecentSaved = useMemo(() => {
+    return getMostRecentlySaved(instances);
+  }, [instances]);
+
+  // Computed: most recently opened instance
+  const mostRecentOpened = useMemo(() => {
+    return getMostRecentlyOpened(instances);
+  }, [instances]);
 
   // Load instances
   const loadInstances = useCallback(async () => {
@@ -35,16 +46,6 @@ export const useInstances = () => {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  // Load current instance ID
-  const loadCurrentInstanceId = useCallback(async () => {
-    try {
-      const currentId = await getCurrentInstanceId();
-      setCurrentInstance(currentId);
-    } catch (err) {
-      console.error("Error loading current instance ID:", err);
     }
   }, []);
 
@@ -76,7 +77,6 @@ export const useInstances = () => {
         const success = await deleteInstance(instanceId);
         if (success) {
           await loadInstances();
-          await loadCurrentInstanceId();
           return true;
         }
         return false;
@@ -86,27 +86,45 @@ export const useInstances = () => {
         return false;
       }
     },
-    [loadInstances, loadCurrentInstanceId]
+    [loadInstances]
   );
 
-  // Switch to instance
-  const switchTo = useCallback(
+  // Save current tabs to instance
+  const saveTabsTo = useCallback(
     async (instanceId) => {
       try {
         setError(null);
-        const result = await switchToInstance(instanceId);
+        const result = await saveCurrentTabsToInstance(instanceId);
         if (result.success) {
-          await loadCurrentInstanceId();
           await loadInstances();
         }
         return result;
       } catch (err) {
-        console.error("Error switching instance:", err);
+        console.error("Error saving tabs to instance:", err);
         setError(err.message);
         return { success: false, message: err.message };
       }
     },
-    [loadInstances, loadCurrentInstanceId]
+    [loadInstances]
+  );
+
+  // Open instance tabs
+  const openTabs = useCallback(
+    async (instanceId, append = false) => {
+      try {
+        setError(null);
+        const result = await openInstanceTabs(instanceId, append);
+        if (result.success) {
+          await loadInstances();
+        }
+        return result;
+      } catch (err) {
+        console.error("Error opening instance tabs:", err);
+        setError(err.message);
+        return { success: false, message: err.message };
+      }
+    },
+    [loadInstances]
   );
 
   // Create new instance
@@ -126,39 +144,6 @@ export const useInstances = () => {
     [loadInstances]
   );
 
-  // Save current tabs to current instance
-  const saveCurrentTabs = useCallback(async () => {
-    try {
-      if (!currentInstanceId) {
-        throw new Error("No current instance set");
-      }
-      setError(null);
-      const success = await saveCurrentTabsToInstance(currentInstanceId);
-      if (success) {
-        await loadInstances();
-      }
-      return success;
-    } catch (err) {
-      console.error("Error saving current tabs:", err);
-      setError(err.message);
-      return false;
-    }
-  }, [currentInstanceId, loadInstances]);
-
-  // Set current instance
-  const setCurrent = useCallback(async (instanceId) => {
-    try {
-      setError(null);
-      await setCurrentInstanceId(instanceId);
-      setCurrentInstance(instanceId);
-      return true;
-    } catch (err) {
-      console.error("Error setting current instance:", err);
-      setError(err.message);
-      return false;
-    }
-  }, []);
-
   // Get instance by ID
   const getInstance = useCallback(
     (instanceId) => {
@@ -167,25 +152,19 @@ export const useInstances = () => {
     [instances]
   );
 
-  // Get current instance object
-  const getCurrentInstance = useCallback(() => {
-    return getInstance(currentInstanceId);
-  }, [currentInstanceId, getInstance]);
-
   // Initialize
   const initialize = useCallback(async () => {
     try {
       setError(null);
       await initializeInstanceSystem();
       await loadInstances();
-      await loadCurrentInstanceId();
       return true;
     } catch (err) {
       console.error("Error initializing instances:", err);
       setError(err.message);
       return false;
     }
-  }, [loadInstances, loadCurrentInstanceId]);
+  }, [loadInstances]);
 
   // Initial load
   useEffect(() => {
@@ -194,18 +173,16 @@ export const useInstances = () => {
 
   return {
     instances,
-    currentInstanceId,
+    mostRecentSaved,
+    mostRecentOpened,
     loading,
     error,
-    loadInstances,
     save,
     remove,
-    switchTo,
+    saveTabsTo,
+    openTabs,
     create,
-    saveCurrentTabs,
-    setCurrent,
     getInstance,
-    getCurrentInstance,
     initialize,
   };
 };

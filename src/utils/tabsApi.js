@@ -4,8 +4,8 @@
  */
 
 /**
- * Get all tabs in current window
- * @returns {Promise<Array>} Array of tabs {id, url, title}
+ * Get all tabs in current window with group information
+ * @returns {Promise<Array>} Array of tabs {id, url, title, groupId}
  */
 export const getCurrentWindowTabs = async () => {
   try {
@@ -26,6 +26,7 @@ export const getCurrentWindowTabs = async () => {
               id: tab.id,
               url: tab.url,
               title: tab.title || "Untitled",
+              groupId: tab.groupId !== -1 ? tab.groupId : null, // -1 means no group
             }));
           resolve(filteredTabs);
         });
@@ -62,13 +63,31 @@ export const closeTabs = async (tabIds) => {
 };
 
 /**
- * Create tabs from URLs
- * @param {Array<object>} tabs - Array of tab objects {url, title}
+ * Create tabs from URLs (with append or override mode)
+ * @param {Array<object>} tabs - Array of tab objects {url, title, groupId}
+ * @param {boolean} append - If true, append tabs; if false, close existing tabs first
  * @returns {Promise<boolean>} Success status
  */
-export const createTabs = async (tabs) => {
+export const createTabs = async (tabs, append = false) => {
   try {
+    console.log(
+      "createTabs called with append:",
+      append,
+      "tabs count:",
+      tabs.length
+    );
     if (typeof chrome !== "undefined" && chrome.tabs && tabs.length > 0) {
+      // If not append mode, close all tabs except one first
+      if (!append) {
+        console.log("Not append mode - closing all tabs except one");
+        await closeAllTabsExceptOne();
+        // Wait a bit for tabs to close
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      } else {
+        console.log("Append mode - keeping current tabs");
+      }
+
+      // Create tabs
       for (const tab of tabs) {
         await new Promise((resolve) => {
           chrome.tabs.create({ url: tab.url, active: false }, () => {
@@ -76,6 +95,7 @@ export const createTabs = async (tabs) => {
           });
         });
       }
+
       return true;
     }
     return false;

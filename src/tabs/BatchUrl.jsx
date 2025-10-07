@@ -346,7 +346,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
                 direction="row"
                 spacing={1}
                 alignItems="flex-end"
-                sx={{ mt: 2 }}
+                sx={{ mt: 1.5 }}
               >
                 <TextField
                   label="Start ID"
@@ -396,17 +396,15 @@ const BatchUrl = ({ currentState, onStateChange }) => {
                 />
                 <Tooltip title="Generate Links">
                   <IconButton
-                    color="primary"
                     size="small"
                     sx={{
                       height: 40,
                       width: 40,
-                      border: "1px solid",
-                      borderColor: "primary.main",
                       borderRadius: 2,
+                      bgcolor: "primary.main",
+                      color: "#fff",
                       "&:hover": {
-                        borderColor: "primary.dark",
-                        bgcolor: "primary.lighter",
+                        bgcolor: "primary.dark",
                       },
                     }}
                     onClick={handleGenerateUrls}
@@ -437,12 +435,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
             <Typography variant="subtitle1">
               Batch Links ({generatedUrls.length} links)
             </Typography>
-            <Button
-              variant="outlined"
-              color="secondary"
-              size="small"
-              onClick={handleClearUrls}
-            >
+            <Button variant="outlined" size="small" onClick={handleClearUrls}>
               Clear
             </Button>
           </Stack>

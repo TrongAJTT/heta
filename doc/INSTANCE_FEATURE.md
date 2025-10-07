@@ -216,14 +216,15 @@ Re-render UI
       "color": "#1976d2",
       "icon": "WorkIcon",
       "tabs": [
-        { "url": "https://gmail.com", "title": "Gmail" },
-        { "url": "https://calendar.google.com", "title": "Calendar" }
+        { "url": "https://gmail.com", "title": "Gmail", "groupId": null },
+        { "url": "https://calendar.google.com", "title": "Calendar", "groupId": null }
       ],
       "createdAt": "2025-10-07T10:00:00.000Z",
-      "modifiedAt": "2025-10-07T15:30:00.000Z"
+      "modifiedAt": "2025-10-07T15:30:00.000Z",
+      "lastSavedAt": "2025-10-07T15:30:00.000Z",
+      "lastOpenedAt": "2025-10-07T14:00:00.000Z"
     }
-  ],
-  "currentInstanceId": "1696723200000"
+  ]
 }
 ```
 
@@ -279,8 +280,14 @@ Re-render UI
 import { useInstances } from "./hooks";
 
 function MyComponent() {
-  const { instances, currentInstanceId, create, switchTo, saveCurrentTabs } =
-    useInstances();
+  const {
+    instances,
+    mostRecentSaved,
+    mostRecentOpened,
+    create,
+    saveTabsTo,
+    openTabs,
+  } = useInstances();
 
   // Create new instance
   const handleCreate = async () => {
@@ -289,15 +296,23 @@ function MyComponent() {
         name: "My Workspace",
         color: "#1976d2",
       },
-      true
+      true // with current tabs
     );
   };
 
-  // Switch instance
-  const handleSwitch = async (id) => {
-    const result = await switchTo(id);
+  // Save current tabs to instance
+  const handleSave = async (id) => {
+    const result = await saveTabsTo(id);
     if (result.success) {
-      console.log("Switched successfully!");
+      console.log(`Saved ${result.tabCount} tabs!`);
+    }
+  };
+
+  // Open instance tabs
+  const handleOpen = async (id, append = false) => {
+    const result = await openTabs(id, append);
+    if (result.success) {
+      console.log("Opened successfully!");
     }
   };
 
@@ -306,7 +321,15 @@ function MyComponent() {
       {instances.map((instance) => (
         <div key={instance.id}>
           <h3>{instance.name}</h3>
-          <button onClick={() => handleSwitch(instance.id)}>Switch</button>
+          <button onClick={() => handleSave(instance.id)}>Save Tabs</button>
+          <button onClick={() => handleOpen(instance.id, false)}>
+            Open (Replace)
+          </button>
+          <button onClick={() => handleOpen(instance.id, true)}>
+            Open (Append)
+          </button>
+          {mostRecentSaved?.id === instance.id && <span>📤 Saved</span>}
+          {mostRecentOpened?.id === instance.id && <span>📥 Opened</span>}
         </div>
       ))}
     </div>

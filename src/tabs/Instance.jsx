@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -15,42 +15,66 @@ import {
   Chip,
   Alert,
   CircularProgress,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Badge,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
-import SwitchAccountIcon from "@mui/icons-material/SwitchAccount";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import TabIcon from "@mui/icons-material/Tab";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import InfoIcon from "@mui/icons-material/Info";
 import { useInstances } from "../hooks";
 import { INSTANCE_COLORS, INSTANCE_ICONS } from "../constants";
 import { validateInstance } from "../models/instanceModel";
 import InfoDialog from "../components/InfoDialog";
+import OpenInstanceDialog from "../components/OpenInstanceDialog";
 import ToastWithProgress from "../components/ToastWithProgress";
 
 const Instance = () => {
   const {
     instances,
-    currentInstanceId,
+    mostRecentSaved,
+    mostRecentOpened,
     loading,
     error,
     save,
     remove,
-    switchTo,
+    saveTabsTo,
+    openTabs,
     create,
-    saveCurrentTabs,
+    initialize,
   } = useInstances();
 
+  // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [showOpenDialog, setShowOpenDialog] = useState(false);
+
+  // Edit states
   const [editingInstance, setEditingInstance] = useState(null);
   const [newInstanceName, setNewInstanceName] = useState("");
   const [newInstanceColor, setNewInstanceColor] = useState(INSTANCE_COLORS[0]);
   const [newInstanceIcon, setNewInstanceIcon] = useState(INSTANCE_ICONS[0]);
-  const [withCurrentTabs, setWithCurrentTabs] = useState(false);
+  const [withCurrentTabs, setWithCurrentTabs] = useState(true);
+
+  // Open dialog states
+  const [instanceToOpen, setInstanceToOpen] = useState(null);
+  const [appendMode, setAppendMode] = useState(false);
+
+  // Menu states
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [menuInstance, setMenuInstance] = useState(null);
+
+  // UI states
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -60,6 +84,7 @@ const Instance = () => {
     setErrorMessage("");
   };
 
+  // === CREATE INSTANCE ===
   const handleCreateInstance = async () => {
     clearMessages();
 
@@ -97,6 +122,7 @@ const Instance = () => {
     }
   };
 
+  // === EDIT INSTANCE ===
   const handleEditInstance = async () => {
     clearMessages();
 
@@ -114,6 +140,7 @@ const Instance = () => {
       setSuccessMessage("Instance updated successfully!");
       setShowEditDialog(false);
       setEditingInstance(null);
+      setMenuAnchor(null);
     } catch (err) {
       setErrorMessage(err.message || "Failed to update instance");
     } finally {
@@ -121,7 +148,17 @@ const Instance = () => {
     }
   };
 
+  const openEditDialog = (instance) => {
+    setEditingInstance({ ...instance });
+    setShowEditDialog(true);
+    setMenuAnchor(null);
+    clearMessages();
+  };
+
+  // === DELETE INSTANCE ===
   const handleDeleteInstance = async (instanceId) => {
+    setMenuAnchor(null);
+
     if (!confirm("Are you sure you want to delete this instance?")) {
       return;
     }
@@ -138,58 +175,161 @@ const Instance = () => {
     }
   };
 
-  const handleSwitchInstance = async (instanceId) => {
-    if (instanceId === currentInstanceId) {
-      return;
-    }
-
-    if (
-      !confirm(
-        "Switching instance will close current tabs and open tabs from selected instance.\n" +
-          "⚠️ IMPORTANT: Make sure you have saved your current instance data before switching!\n" +
-          "Continue?"
-      )
-    ) {
-      return;
-    }
-
+  // === SAVE INSTANCE TABS ===
+  const handleSaveInstance = async (instanceId) => {
     clearMessages();
     setActionLoading(true);
     try {
-      const result = await switchTo(instanceId);
+      const result = await saveTabsTo(instanceId);
       if (result.success) {
         setSuccessMessage(result.message);
       } else {
         setErrorMessage(result.message);
       }
     } catch (err) {
-      setErrorMessage(err.message || "Failed to switch instance");
+      setErrorMessage(err.message || "Failed to save tabs");
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleSaveCurrentTabs = async () => {
+  // === OPEN INSTANCE TABS ===
+  const handleOpenInstanceClick = (instance) => {
+    setInstanceToOpen(instance);
+    setAppendMode(false);
+    setShowOpenDialog(true);
     clearMessages();
+  };
+
+  const handleConfirmOpenInstance = async () => {
+    if (!instanceToOpen) return;
+
+    console.log("Opening instance with append mode:", appendMode);
     setActionLoading(true);
     try {
-      const success = await saveCurrentTabs();
-      if (success) {
-        setSuccessMessage("Current tabs saved to instance!");
+      const result = await openTabs(instanceToOpen.id, appendMode);
+      console.log("Open result:", result);
+      if (result.success) {
+        setSuccessMessage(result.message);
+        setShowOpenDialog(false);
+        setInstanceToOpen(null);
       } else {
-        setErrorMessage("Failed to save current tabs");
+        setErrorMessage(result.message);
       }
     } catch (err) {
-      setErrorMessage(err.message || "Failed to save current tabs");
+      setErrorMessage(err.message || "Failed to open instance");
     } finally {
       setActionLoading(false);
     }
   };
 
-  const openEditDialog = (instance) => {
-    setEditingInstance({ ...instance });
-    setShowEditDialog(true);
-    clearMessages();
+  // === MENU HANDLERS ===
+  const handleMenuOpen = (event, instance) => {
+    setMenuAnchor(event.currentTarget);
+    setMenuInstance(instance);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+    setMenuInstance(null);
+  };
+
+  // === RENDER BADGES ===
+  const renderInstanceBadges = (instance) => {
+    const badges = [];
+
+    // Tab count with hover list
+    badges.push(
+      <Tooltip
+        key="tabcount"
+        title={
+          <Box
+            sx={{ maxWidth: 360, maxHeight: 240, overflowY: "auto", p: 0.5 }}
+          >
+            {(instance.tabs || []).length === 0 ? (
+              <Typography variant="caption" color="text.secondary">
+                No tabs
+              </Typography>
+            ) : (
+              <Stack spacing={0.5}>
+                {(instance.tabs || []).map((t, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      {idx + 1}.
+                    </Typography>
+                    <Typography variant="caption">
+                      {t.title || t.url || `Tab ${idx + 1}`}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </Box>
+        }
+        placement="top"
+        arrow
+      >
+        <Chip
+          label={`${instance.tabs?.length || 0} tabs`}
+          size="small"
+          variant="outlined"
+          sx={{ height: 20 }}
+        />
+      </Tooltip>
+    );
+
+    if (mostRecentSaved && instance.id === mostRecentSaved.id) {
+      badges.push(
+        <Tooltip
+          key="saved"
+          title={`Most recently saved at ${new Date(
+            mostRecentSaved.time || instance.modifiedAt || Date.now()
+          ).toLocaleString()}`}
+        >
+          <Chip
+            icon={<CloudUploadIcon fontSize="small" />}
+            label=""
+            size="small"
+            color="success"
+            sx={{
+              height: 20,
+              minWidth: 24,
+              "& .MuiChip-label": { px: 0 },
+              "& .MuiChip-icon": { m: 0 },
+            }}
+          />
+        </Tooltip>
+      );
+    }
+
+    if (mostRecentOpened && instance.id === mostRecentOpened.id) {
+      badges.push(
+        <Tooltip
+          key="opened"
+          title={`Most recently opened at ${new Date(
+            mostRecentOpened.time || instance.modifiedAt || Date.now()
+          ).toLocaleString()}`}
+        >
+          <Chip
+            icon={<AccessTimeIcon fontSize="small" />}
+            label=""
+            size="small"
+            color="primary"
+            sx={{
+              height: 20,
+              minWidth: 24,
+              "& .MuiChip-label": { px: 0 },
+              "& .MuiChip-icon": { m: 0 },
+            }}
+          />
+        </Tooltip>
+      );
+    }
+
+    return badges;
   };
 
   if (loading) {
@@ -232,42 +372,26 @@ const Instance = () => {
                 <InfoIcon />
               </IconButton>
             </Tooltip>
-            {currentInstanceId && (
-              <Tooltip title="Save current tabs to active instance">
-                <IconButton
-                  color="primary"
-                  size="small"
-                  onClick={handleSaveCurrentTabs}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "primary.main",
-                    borderRadius: 2,
-                    "&:hover": {
-                      borderColor: "primary.dark",
-                      bgcolor: "primary.lighter",
-                    },
-                  }}
-                >
-                  <SaveIcon />
-                </IconButton>
-              </Tooltip>
-            )}
             <Button
               variant="contained"
               startIcon={<AddIcon />}
+              onClick={() => setShowCreateDialog(true)}
               size="small"
-              onClick={() => {
-                setShowCreateDialog(true);
-                clearMessages();
-              }}
             >
-              Create
+              CREATE
             </Button>
           </Stack>
         </Stack>
 
         {/* Messages */}
-        {/* Floating Toast for Error */}
+        <ToastWithProgress
+          open={!!successMessage}
+          onClose={clearMessages}
+          message={successMessage}
+          severity="success"
+          duration={5000}
+          position="bottom"
+        />
         <ToastWithProgress
           open={!!(errorMessage || error)}
           onClose={clearMessages}
@@ -278,316 +402,332 @@ const Instance = () => {
         />
 
         {/* Instances List */}
-        <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
-          {instances.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 4 }}>
-              <TabIcon
-                sx={{ fontSize: 48, color: "text.secondary", opacity: 0.5 }}
-              />
-              <Typography color="text.secondary" sx={{ mt: 2 }}>
-                No instances yet.
-                <br />
-                Create your first instance to manage tab workspaces.
-              </Typography>
-            </Box>
-          ) : (
-            <Stack spacing={1}>
-              {instances.map((instance) => (
+        <Box sx={{ flexGrow: 1, overflow: "auto" }}>
+          <Stack spacing={1.5}>
+            {instances.length === 0 ? (
+              <Paper
+                sx={{
+                  p: 3,
+                  textAlign: "center",
+                  bgcolor: "background.default",
+                }}
+              >
+                <Typography color="text.secondary">
+                  No instances yet. Create your first instance!
+                </Typography>
+              </Paper>
+            ) : (
+              instances.map((instance) => (
                 <Paper
                   key={instance.id}
                   variant="outlined"
                   sx={{
-                    p: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    borderColor: instance.color,
-                    borderWidth: instance.id === currentInstanceId ? 2 : 1,
-                    bgcolor:
-                      instance.id === currentInstanceId
-                        ? `${instance.color}20`
-                        : undefined,
-                    "&:hover": { bgcolor: "action.hover" },
+                    p: 1.5,
+                    borderLeft: "4px solid",
+                    borderLeftColor: instance.color,
+                    borderRadius: 1,
+                    transition: "all 0.2s",
+                    "&:hover": {
+                      boxShadow: 2,
+                      bgcolor: "action.hover",
+                    },
                   }}
                 >
-                  <Stack flex={1} spacing={0.25}>
-                    <Stack direction="row" alignItems="center" spacing={0.75}>
-                      <Typography variant="body2" fontWeight={600} noWrap>
-                        {instance.name}
-                      </Typography>
-                      {instance.id === currentInstanceId && (
-                        <CheckCircleIcon
-                          fontSize="small"
-                          sx={{ color: "success.main" }}
-                        />
-                      )}
-                      <Tooltip
-                        title={
-                          <Box
-                            sx={{
-                              maxWidth: 360,
-                              maxHeight: 240,
-                              overflowY: "auto",
-                              p: 0.5,
-                            }}
-                          >
-                            {(instance.tabs || []).length === 0 ? (
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                No tabs
-                              </Typography>
-                            ) : (
-                              <Stack spacing={0.5}>
-                                {(instance.tabs || []).map((t, idx) => (
-                                  <Typography
-                                    key={idx}
-                                    variant="caption"
-                                    sx={{ display: "block" }}
-                                  >
-                                    {t.title || t.url || `Tab ${idx + 1}`}
-                                  </Typography>
-                                ))}
-                              </Stack>
-                            )}
-                          </Box>
-                        }
-                        placement="top"
-                        arrow
-                      >
-                        <Chip
-                          label={`${instance.tabs?.length || 0} tabs`}
-                          size="small"
-                          variant="outlined"
-                          sx={{ ml: "auto", cursor: "default" }}
-                        />
-                      </Tooltip>
-                    </Stack>
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      Modified: {new Date(instance.modifiedAt).toLocaleString()}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={0.5}>
-                    {instance.id !== currentInstanceId && (
-                      <Tooltip title="Switch to this instance">
-                        <IconButton
-                          color="primary"
-                          size="small"
-                          onClick={() => handleSwitchInstance(instance.id)}
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    {/* Instance Info */}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 600,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
                         >
-                          <SwitchAccountIcon fontSize="small" />
+                          {instance.name}
+                        </Typography>
+                        {renderInstanceBadges(instance)}
+                      </Stack>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: "block" }}
+                      >
+                        {instance.modifiedAt &&
+                          `Modified: ${new Date(
+                            instance.modifiedAt
+                          ).toLocaleString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}`}
+                      </Typography>
+                    </Box>
+
+                    {/* Action Buttons */}
+                    <Stack direction="row" spacing={0.5}>
+                      <Tooltip title="Save current tabs to this instance">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleSaveInstance(instance.id)}
+                          disabled={actionLoading}
+                        >
+                          <SaveIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                    )}
-                    <Tooltip title="Edit instance">
-                      <IconButton
-                        color="primary"
-                        size="small"
-                        onClick={() => openEditDialog(instance)}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete instance">
-                      <IconButton
-                        color="error"
-                        size="small"
-                        onClick={() => handleDeleteInstance(instance.id)}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+
+                      <Tooltip title="Open instance tabs">
+                        <IconButton
+                          size="small"
+                          color="success"
+                          onClick={() => handleOpenInstanceClick(instance)}
+                          disabled={actionLoading}
+                        >
+                          <FolderOpenIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="More options">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleMenuOpen(e, instance)}
+                          disabled={actionLoading}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
                   </Stack>
                 </Paper>
-              ))}
-            </Stack>
-          )}
+              ))
+            )}
+          </Stack>
         </Box>
+      </Stack>
 
-        {/* Create Instance Dialog */}
-        <Dialog
-          open={showCreateDialog}
-          onClose={() => setShowCreateDialog(false)}
-          maxWidth="sm"
-          fullWidth
+      {/* Context Menu */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => openEditDialog(menuInstance)}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => handleDeleteInstance(menuInstance?.id)}
+          sx={{ color: "error.main" }}
         >
-          <DialogTitle>Create New Instance</DialogTitle>
-          <DialogContent>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      {/* CREATE DIALOG */}
+      <Dialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Create New Instance</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Instance Name"
+              fullWidth
+              value={newInstanceName}
+              onChange={(e) => setNewInstanceName(e.target.value)}
+              placeholder="My Workspace"
+              autoFocus
+            />
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Color
+              </Typography>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, 36px)",
+                  gap: 1,
+                }}
+              >
+                {INSTANCE_COLORS.map((color) => (
+                  <Box
+                    key={color}
+                    onClick={() => setNewInstanceColor(color)}
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1,
+                      bgcolor: color,
+                      cursor: "pointer",
+                      border: "2px solid",
+                      borderColor:
+                        newInstanceColor === color
+                          ? "text.primary"
+                          : "transparent",
+                      transition: "all 0.15s",
+                      "&:hover": {
+                        transform: "scale(1.06)",
+                      },
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            <Stack direction="row" spacing={1} alignItems="center">
+              <input
+                type="checkbox"
+                checked={withCurrentTabs}
+                onChange={(e) => setWithCurrentTabs(e.target.checked)}
+                id="with-current-tabs"
+              />
+              <label htmlFor="with-current-tabs">
+                <Typography variant="body2">
+                  Create with current tabs
+                </Typography>
+              </label>
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+          <Button
+            onClick={handleCreateInstance}
+            variant="contained"
+            disabled={actionLoading}
+          >
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* EDIT DIALOG */}
+      <Dialog
+        open={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Edit Instance</DialogTitle>
+        <DialogContent>
+          {editingInstance && (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
                 label="Instance Name"
-                value={newInstanceName}
-                onChange={(e) => setNewInstanceName(e.target.value)}
                 fullWidth
-                required
+                value={editingInstance.name}
+                onChange={(e) =>
+                  setEditingInstance({
+                    ...editingInstance,
+                    name: e.target.value,
+                  })
+                }
                 autoFocus
               />
 
               <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" gutterBottom>
                   Color
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Stack direction="row" spacing={1} flexWrap="wrap">
                   {INSTANCE_COLORS.map((color) => (
                     <Box
                       key={color}
-                      onClick={() => setNewInstanceColor(color)}
+                      onClick={() =>
+                        setEditingInstance({
+                          ...editingInstance,
+                          color,
+                        })
+                      }
                       sx={{
                         width: 40,
                         height: 40,
-                        bgcolor: color,
                         borderRadius: 1,
+                        bgcolor: color,
                         cursor: "pointer",
-                        border: newInstanceColor === color ? 3 : 0,
-                        borderColor: "text.primary",
-                        "&:hover": { opacity: 0.8 },
+                        border: "3px solid",
+                        borderColor:
+                          editingInstance.color === color
+                            ? "primary.main"
+                            : "transparent",
+                        transition: "all 0.2s",
+                        "&:hover": {
+                          transform: "scale(1.1)",
+                        },
                       }}
                     />
                   ))}
                 </Stack>
               </Box>
-
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <input
-                    type="checkbox"
-                    checked={withCurrentTabs}
-                    onChange={(e) => setWithCurrentTabs(e.target.checked)}
-                    id="withCurrentTabs"
-                  />
-                  <label htmlFor="withCurrentTabs">
-                    <Typography variant="body2">
-                      Include current tabs in new instance
-                    </Typography>
-                  </label>
-                </Stack>
-              </Box>
             </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowCreateDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleCreateInstance}
-              variant="contained"
-              disabled={actionLoading}
-              startIcon={
-                actionLoading ? <CircularProgress size={16} /> : <AddIcon />
-              }
-            >
-              Create
-            </Button>
-          </DialogActions>
-        </Dialog>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowEditDialog(false)}>Cancel</Button>
+          <Button
+            onClick={handleEditInstance}
+            variant="contained"
+            disabled={actionLoading}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        {/* Edit Instance Dialog */}
-        <Dialog
-          open={showEditDialog}
-          onClose={() => setShowEditDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Edit Instance</DialogTitle>
-          <DialogContent>
-            {editingInstance && (
-              <Stack spacing={2} sx={{ mt: 1 }}>
-                <TextField
-                  label="Instance Name"
-                  value={editingInstance.name}
-                  onChange={(e) =>
-                    setEditingInstance({
-                      ...editingInstance,
-                      name: e.target.value,
-                    })
-                  }
-                  fullWidth
-                  required
-                  autoFocus
-                />
+      {/* OPEN INSTANCE DIALOG */}
+      <OpenInstanceDialog
+        open={showOpenDialog}
+        onClose={() => setShowOpenDialog(false)}
+        onConfirm={handleConfirmOpenInstance}
+        instance={instanceToOpen}
+        append={appendMode}
+        onAppendChange={setAppendMode}
+        loading={actionLoading}
+      />
 
-                <Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Color
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {INSTANCE_COLORS.map((color) => (
-                      <Box
-                        key={color}
-                        onClick={() =>
-                          setEditingInstance({ ...editingInstance, color })
-                        }
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          bgcolor: color,
-                          borderRadius: 1,
-                          cursor: "pointer",
-                          border: editingInstance.color === color ? 3 : 0,
-                          borderColor: "text.primary",
-                          "&:hover": { opacity: 0.8 },
-                        }}
-                      />
-                    ))}
-                  </Stack>
-                </Box>
+      {/* INFO DIALOG (same structure as Redirect) */}
+      <InfoDialog
+        open={showInfoDialog}
+        onClose={() => setShowInfoDialog(false)}
+        title="Instance Manager Feature"
+        description="The Instance Manager allows you to create and manage multiple tab workspaces."
+        features={[
+          "Organizing different projects or workflows",
+          "Switching between different sets of tabs quickly",
+          "Saving and restoring specific tab configurations",
+          "Managing multiple browser sessions efficiently",
+        ]}
+        howToUse={[
+          'Click "Create" to create a new instance',
+          'Use "Save" to save current tabs to the selected instance',
+          'Use "Open" to load tabs from an instance (append or replace)',
+          "Edit or delete instances from the menu",
+        ]}
+        additionalFeatures={[
+          "Color-coded instances for easy identification",
+          "Tab count display for each instance",
+          "Badges for most recently saved/opened instances",
+          "Optional append mode when opening tabs",
+        ]}
+        note="Opening an instance in replace mode will close current tabs before loading saved ones."
+      />
 
-                <Typography variant="caption" color="text.secondary">
-                  This instance has {editingInstance.tabs?.length || 0} tabs
-                </Typography>
-              </Stack>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowEditDialog(false)}>Cancel</Button>
-            <Button
-              onClick={handleEditInstance}
-              variant="contained"
-              disabled={actionLoading}
-              startIcon={
-                actionLoading ? <CircularProgress size={16} /> : <SaveIcon />
-              }
-            >
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Info Dialog */}
-        <InfoDialog
-          open={showInfoDialog}
-          onClose={() => setShowInfoDialog(false)}
-          title="Instance Manager Feature"
-          description="The Instance Manager allows you to create and manage multiple tab workspaces."
-          features={[
-            "Organizing different projects or workflows",
-            "Switching between different sets of tabs quickly",
-            "Saving and restoring specific tab configurations",
-            "Managing multiple browser sessions efficiently",
-          ]}
-          howToUse={[
-            'Click "Create" to create a new instance',
-            'Use "Save" to save current tabs to the active instance',
-            "Click the switch icon to switch to a different instance",
-            "Edit or delete instances as needed",
-          ]}
-          additionalFeatures={[
-            "Color-coded instances for easy identification",
-            "Tab count display for each instance",
-            "Modified timestamp tracking",
-            "Quick switching between instances",
-          ]}
-          note="Switching instances will close current tabs and open tabs from the selected instance."
-        />
-
-        {/* Floating Toast for Success */}
-        <ToastWithProgress
-          open={!!successMessage}
-          onClose={() => setSuccessMessage("")}
-          message={successMessage}
-          severity="success"
-          duration={5000}
-          position="bottom"
-        />
-      </Stack>
+      {/* Toast Messages */}
+      {actionLoading && <ToastWithProgress message="Processing..." />}
     </div>
   );
 };

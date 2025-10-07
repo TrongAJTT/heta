@@ -173,6 +173,7 @@ const Extractor = ({ exportFormat: initialFormat, onExportFormatChange }) => {
                   placeholder="Filter URLs..."
                   sx={{
                     width: 220,
+                    backgroundColor: "#fff",
                     "& .MuiInputBase-root": {
                       height: "32px", // Match button height
                     },

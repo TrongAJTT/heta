@@ -10,9 +10,11 @@
  * @param {string} options.name - Instance name
  * @param {string} options.color - Instance color (hex)
  * @param {string} options.icon - Instance icon name
- * @param {Array} options.tabs - Array of tab objects {url, title}
+ * @param {Array} options.tabs - Array of tab objects {url, title, groupId}
  * @param {string} options.createdAt - ISO timestamp
  * @param {string} options.modifiedAt - ISO timestamp
+ * @param {string} options.lastSavedAt - ISO timestamp when tabs were last saved
+ * @param {string} options.lastOpenedAt - ISO timestamp when instance was last opened
  * @returns {object} Instance object
  */
 export const createInstance = ({
@@ -23,6 +25,8 @@ export const createInstance = ({
   tabs,
   createdAt,
   modifiedAt,
+  lastSavedAt,
+  lastOpenedAt,
 } = {}) => ({
   id: id || Date.now().toString(),
   name: (name || "Untitled Instance").trim(),
@@ -31,6 +35,8 @@ export const createInstance = ({
   tabs: Array.isArray(tabs) ? tabs : [],
   createdAt: createdAt || new Date().toISOString(),
   modifiedAt: modifiedAt || new Date().toISOString(),
+  lastSavedAt: lastSavedAt || null, // null means never saved tabs
+  lastOpenedAt: lastOpenedAt || null, // null means never opened
 });
 
 /**
@@ -47,11 +53,13 @@ export const normalizeInstance = (raw) => {
  * Create tab object for instance
  * @param {string} url - Tab URL
  * @param {string} title - Tab title
+ * @param {number|null} groupId - Tab group ID (if in a group)
  * @returns {object} Tab object
  */
-export const createInstanceTab = (url, title) => ({
+export const createInstanceTab = (url, title, groupId = null) => ({
   url: url || "",
   title: title || "Untitled",
+  groupId: groupId, // Chrome tab group ID
 });
 
 /**
@@ -78,6 +86,48 @@ export const validateInstance = (instance) => {
     isValid: errors.length === 0,
     errors,
   };
+};
+
+/**
+ * Get the most recently saved instance
+ * @param {Array} instances - Array of instances
+ * @returns {object|null} Most recently saved instance or null
+ */
+export const getMostRecentlySaved = (instances) => {
+  if (!Array.isArray(instances) || instances.length === 0) {
+    return null;
+  }
+
+  return instances.reduce((mostRecent, instance) => {
+    if (!instance.lastSavedAt) return mostRecent;
+    if (!mostRecent || !mostRecent.lastSavedAt) return instance;
+
+    const instanceTime = new Date(instance.lastSavedAt).getTime();
+    const mostRecentTime = new Date(mostRecent.lastSavedAt).getTime();
+
+    return instanceTime > mostRecentTime ? instance : mostRecent;
+  }, null);
+};
+
+/**
+ * Get the most recently opened instance
+ * @param {Array} instances - Array of instances
+ * @returns {object|null} Most recently opened instance or null
+ */
+export const getMostRecentlyOpened = (instances) => {
+  if (!Array.isArray(instances) || instances.length === 0) {
+    return null;
+  }
+
+  return instances.reduce((mostRecent, instance) => {
+    if (!instance.lastOpenedAt) return mostRecent;
+    if (!mostRecent || !mostRecent.lastOpenedAt) return instance;
+
+    const instanceTime = new Date(instance.lastOpenedAt).getTime();
+    const mostRecentTime = new Date(mostRecent.lastOpenedAt).getTime();
+
+    return instanceTime > mostRecentTime ? instance : mostRecent;
+  }, null);
 };
 
 export default {

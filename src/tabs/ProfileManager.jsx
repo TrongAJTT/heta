@@ -19,6 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import DownloadIcon from "@mui/icons-material/Download";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import InfoIcon from "@mui/icons-material/Info";
 import PersonIcon from "@mui/icons-material/Person";
 import ProfileImportButton from "../components/ProfileImportButton";
@@ -354,13 +355,11 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
               )}
             </Paper>
           ) : (
-            <Stack spacing={0.5}>
+            <Stack spacing={1}>
               {profiles.map((profile) => (
                 <Paper
                   key={profile.id}
-                  variant={
-                    activeProfileId === profile.id ? "outlined" : "elevation"
-                  }
+                  variant="outlined"
                   sx={{
                     p: 1,
                     display: "flex",
@@ -368,7 +367,8 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                     borderColor:
                       activeProfileId === profile.id
                         ? "primary.main"
-                        : undefined,
+                        : "#000000",
+                    borderWidth: activeProfileId === profile.id ? 2 : 1,
                     bgcolor:
                       activeProfileId === profile.id
                         ? "primary.lighter"
@@ -410,12 +410,12 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                     <Tooltip title="Load">
                       <span>
                         <IconButton
-                          color="primary"
+                          color="success"
                           size="small"
                           onClick={() => handleLoadProfile(profile.id)}
                           disabled={activeProfileId === profile.id}
                         >
-                          <DownloadIcon fontSize="small" />
+                          <FolderOpenIcon fontSize="small" />
                         </IconButton>
                       </span>
                     </Tooltip>
