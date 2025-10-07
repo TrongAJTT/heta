@@ -9,6 +9,7 @@ export const createBatchUrlState = ({
   generatedUrls = [],
   batchSize = 8,
   currentOpenIndex = 0,
+  expanded = true,
 } = {}) => ({
   urlPattern,
   startId,
@@ -16,6 +17,7 @@ export const createBatchUrlState = ({
   generatedUrls,
   batchSize,
   currentOpenIndex,
+  expanded,
 });
 
 export const normalizeBatchUrlState = (state) => {
@@ -29,6 +31,7 @@ export const normalizeBatchUrlState = (state) => {
     currentOpenIndex: Number.isFinite(s.currentOpenIndex)
       ? s.currentOpenIndex
       : 0,
+    expanded: typeof s.expanded === "boolean" ? s.expanded : true,
   });
 };
 

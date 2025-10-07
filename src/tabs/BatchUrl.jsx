@@ -28,6 +28,8 @@ import {
   normalizeBatchUrlState,
   createBatchUrlState,
 } from "../models/batchUrlModel";
+import ToastWithProgress from "../components/ToastWithProgress";
+import { CONTAINER_HEADER_BG } from "../constants";
 
 const BatchUrl = ({ currentState, onStateChange }) => {
   const [urlPattern, setUrlPattern] = useState("");
@@ -55,6 +57,9 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       setGeneratedUrls(urls);
       setBatchSize(bs);
       setCurrentOpenIndex(opened);
+      setExpanded(
+        normalized.expanded !== undefined ? normalized.expanded : true
+      );
 
       // Reconstruct progress UI if there was prior progress
       if (urls.length > 0 && opened > 0) {
@@ -108,6 +113,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
           generatedUrls: urls,
           batchSize,
           currentOpenIndex: 0,
+          expanded,
         },
       });
     } catch (err) {
@@ -156,6 +162,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
           generatedUrls,
           batchSize,
           currentOpenIndex: 0,
+          expanded,
         },
       });
       return;
@@ -207,6 +214,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
           generatedUrls,
           batchSize,
           currentOpenIndex: result.newIndex,
+          expanded,
         },
       });
     } catch (error) {
@@ -240,7 +248,18 @@ const BatchUrl = ({ currentState, onStateChange }) => {
         {/* Fixed sections at top */}
         <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
           <Box
-            onClick={() => setExpanded((v) => !v)}
+            onClick={() => {
+              const newExpanded = !expanded;
+              setExpanded(newExpanded);
+              // Save expanded state
+              onStateChange({
+                ...currentState,
+                batchUrl: {
+                  ...currentState?.batchUrl,
+                  expanded: newExpanded,
+                },
+              });
+            }}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -248,7 +267,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
               p: 1,
               cursor: "pointer",
               userSelect: "none",
-              bgcolor: "#fafafa",
+              bgcolor: CONTAINER_HEADER_BG,
               borderBottom: expanded ? "1px solid #e0e0e0" : "none",
             }}
           >
@@ -259,7 +278,16 @@ const BatchUrl = ({ currentState, onStateChange }) => {
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                setExpanded((v) => !v);
+                const newExpanded = !expanded;
+                setExpanded(newExpanded);
+                // Save expanded state
+                onStateChange({
+                  ...currentState,
+                  batchUrl: {
+                    ...currentState?.batchUrl,
+                    expanded: newExpanded,
+                  },
+                });
               }}
             >
               {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -511,22 +539,14 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       </Stack>
 
       {/* Floating Toast for Error */}
-      {error && (
-        <Alert
-          severity="error"
-          onClose={() => setError("")}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1000,
-            maxWidth: "calc(100% - 32px)",
-          }}
-        >
-          {error}
-        </Alert>
-      )}
+      <ToastWithProgress
+        open={!!error}
+        onClose={() => setError("")}
+        message={error}
+        severity="error"
+        duration={5000}
+        position="bottom"
+      />
     </div>
   );
 };

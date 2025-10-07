@@ -9,7 +9,8 @@ import {
 
 const TabChecklist = ({ tabs, selectedIds, onToggleOne, maxHeight }) => {
   return (
-    <Box sx={{ ...(maxHeight && { maxHeight }), p: 1 }}>
+    // Hide horizontal scrollbar with overflowX: "hidden"
+    <Box sx={{ ...(maxHeight && { maxHeight }), p: 1, overflowX: "hidden" }}>
       <Stack>
         {tabs.map((t) => (
           <Box sx={{ maxWidth: 600, width: "100%" }}>
@@ -22,9 +23,28 @@ const TabChecklist = ({ tabs, selectedIds, onToggleOne, maxHeight }) => {
                 />
               }
               label={
-                <Stack>
-                  <Typography variant="body2">{t.title}</Typography>
-                  <Typography variant="caption" color="text.secondary">
+                <Stack sx={{ width: "100%" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                    }}
+                  >
+                    {t.title}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: "100%",
+                    }}
+                  >
                     {t.url}
                   </Typography>
                 </Stack>

@@ -38,6 +38,8 @@ import {
   createBlockedDomain,
   normalizeBlockedDomains,
 } from "../models/blockDomainModel";
+import InfoDialog from "../components/InfoDialog";
+import ToastWithProgress from "../components/ToastWithProgress";
 
 const BlockSite = ({
   blockedDomains: initialDomains,
@@ -460,107 +462,48 @@ const BlockSite = ({
       </Stack>
 
       {/* Toast Notifications */}
-      {error && (
-        <Alert
-          severity="error"
-          onClose={() => setError("")}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1000,
-            maxWidth: "calc(100% - 32px)",
-          }}
-        >
-          {error}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert
-          severity="success"
-          onClose={() => setSuccessMessage("")}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1000,
-            maxWidth: "calc(100% - 32px)",
-          }}
-        >
-          {successMessage}
-        </Alert>
-      )}
+      <ToastWithProgress
+        open={!!error}
+        onClose={() => setError("")}
+        message={error}
+        severity="error"
+        duration={5000}
+        position="bottom"
+      />
+      <ToastWithProgress
+        open={!!successMessage}
+        onClose={() => setSuccessMessage("")}
+        message={successMessage}
+        severity="success"
+        duration={5000}
+        position="bottom"
+      />
 
       {/* Info Dialog */}
-      <Dialog
+      <InfoDialog
         open={infoDialogOpen}
         onClose={() => setInfoDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <BlockIcon color="primary" />
-            <Typography variant="h6">Block Site Feature</Typography>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2}>
-            <Typography variant="body1">
-              The Block Site feature allows you to prevent access to specific
-              domains across your browser.
-            </Typography>
-
-            <Typography variant="h6" color="primary">
-              How it works:
-            </Typography>
-            <Typography variant="body2">
-              • Add domains to your block list using the input field above
-            </Typography>
-            <Typography variant="body2">
-              • Click the Save button to apply blocking rules
-            </Typography>
-            <Typography variant="body2">
-              • The browser will actively prevent connections to these domains
-            </Typography>
-            <Typography variant="body2">
-              • Both incoming and outgoing requests are blocked
-            </Typography>
-
-            <Typography variant="h6" color="primary">
-              Features:
-            </Typography>
-            <Typography variant="body2">
-              • Block main domains and all subdomains (e.g., facebook.com blocks
-              www.facebook.com)
-            </Typography>
-            <Typography variant="body2">
-              • Block all resource types (pages, scripts, images, etc.)
-            </Typography>
-            <Typography variant="body2">
-              • Edit or remove domains from your block list
-            </Typography>
-            <Typography variant="body2">
-              • Clear all domains at once with the Clear button
-            </Typography>
-
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                <strong>Note:</strong> This feature uses Chrome's
-                declarativeNetRequest API to provide efficient, browser-level
-                blocking.
-              </Typography>
-            </Alert>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setInfoDialogOpen(false)} color="primary">
-            Got it
-          </Button>
-        </DialogActions>
-      </Dialog>
+        title="Block Site Feature"
+        description="The Block Site feature allows you to prevent access to specific domains across your browser."
+        features={[
+          "Blocking ads and tracking domains",
+          "Preventing access to distracting websites",
+          "Creating a focused browsing environment",
+          "Blocking malicious or unwanted sites",
+        ]}
+        howToUse={[
+          "Add domains to your block list using the input field above",
+          "Click the Save button to apply blocking rules",
+          "The browser will actively prevent connections to these domains",
+          "Both incoming and outgoing requests are blocked",
+        ]}
+        additionalFeatures={[
+          "Block main domains and all subdomains (e.g., facebook.com blocks www.facebook.com)",
+          "Block all resource types (pages, scripts, images, etc.)",
+          "Edit or remove domains from your block list",
+          "Clear all domains at once with the Clear button",
+        ]}
+      />
 
       {/* Bulk Add Dialog */}
       <Dialog

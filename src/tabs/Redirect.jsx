@@ -34,6 +34,8 @@ import {
   createRedirectRule,
   normalizeRedirectRules,
 } from "../models/redirectRuleModel";
+import InfoDialog from "../components/InfoDialog";
+import ToastWithProgress from "../components/ToastWithProgress";
 
 const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
   const [redirectRules, setRedirectRules] = useState(initialRules || []);
@@ -321,59 +323,56 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
         </Stack>
 
         {/* Add Redirect Rule Section */}
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack spacing={2}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <TextField
-                label="From URL Pattern"
-                value={fromUrl}
-                onChange={(e) => setFromUrl(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleAddRule()}
-                size="small"
-                sx={{ flex: 1 }}
-                placeholder="example.com or *.example.com"
-              />
-              {/* <SwapHorizIcon color="action" sx={{ opacity: 0.6 }} /> */}
-              <TextField
-                label="To URL (Redirect Target)"
-                value={toUrl}
-                onChange={(e) => setToUrl(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleAddRule()}
-                size="small"
-                sx={{ flex: 1 }}
-                placeholder="https://newsite.com"
-              />
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={handleAddRule}
-                disabled={!fromUrl.trim() || !toUrl.trim()}
-                sx={{ flex: 1 }}
-              >
-                Add Redirect Rule
-              </Button>
-              <Tooltip title="Add multiple">
-                <IconButton
-                  color="success"
-                  onClick={() => setBulkAddDialogOpen(true)}
-                  sx={{
-                    bgcolor: "success.main",
-                    color: "white",
-                    borderRadius: "8px",
-                    "&:hover": {
-                      bgcolor: "success.dark",
-                    },
-                  }}
-                >
-                  <PlaylistAddIcon />
-                </IconButton>
-              </Tooltip>
-            </Stack>
+        <Stack spacing={1}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <TextField
+              label="From URL Pattern"
+              value={fromUrl}
+              onChange={(e) => setFromUrl(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleAddRule()}
+              size="small"
+              sx={{ flex: 1 }}
+              placeholder="example.com or *.example.com"
+            />
+            <TextField
+              label="To URL (Redirect Target)"
+              value={toUrl}
+              onChange={(e) => setToUrl(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleAddRule()}
+              size="small"
+              sx={{ flex: 1 }}
+              placeholder="https://newsite.com"
+            />
           </Stack>
-        </Paper>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddRule}
+              disabled={!fromUrl.trim() || !toUrl.trim()}
+              sx={{ flex: 1 }}
+            >
+              Add Redirect Rule
+            </Button>
+            <Tooltip title="Add multiple">
+              <IconButton
+                color="success"
+                onClick={() => setBulkAddDialogOpen(true)}
+                sx={{
+                  bgcolor: "success.main",
+                  color: "white",
+                  borderRadius: "8px",
+                  "&:hover": {
+                    bgcolor: "success.dark",
+                  },
+                }}
+              >
+                <PlaylistAddIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </Stack>
 
         {/* Redirect Rules List */}
         {redirectRules.length > 0 && (
@@ -536,96 +535,49 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
       </Stack>
 
       {/* Toast Notifications */}
-      {error && (
-        <Alert
-          severity="error"
-          onClose={() => setError("")}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1000,
-            maxWidth: "calc(100% - 32px)",
-          }}
-        >
-          {error}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert
-          severity="success"
-          onClose={() => setSuccessMessage("")}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            left: 16,
-            right: 16,
-            zIndex: 1000,
-            maxWidth: "calc(100% - 32px)",
-          }}
-        >
-          {successMessage}
-        </Alert>
-      )}
+      <ToastWithProgress
+        open={!!error}
+        onClose={() => setError("")}
+        message={error}
+        severity="error"
+        duration={5000}
+        position="bottom"
+      />
+      <ToastWithProgress
+        open={!!successMessage}
+        onClose={() => setSuccessMessage("")}
+        message={successMessage}
+        severity="success"
+        duration={5000}
+        position="bottom"
+      />
 
       {/* Info Dialog */}
-      <Dialog
+      <InfoDialog
         open={infoDialogOpen}
         onClose={() => setInfoDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Redirect Manager Feature</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" paragraph>
-            The Redirect Manager allows you to automatically redirect from one
-            URL to another. This is useful for:
-          </Typography>
-          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
-            <li>Redirecting old domains to new ones</li>
-            <li>Blocking ads by redirecting to blank pages</li>
-            <li>Creating custom shortcuts to frequently visited pages</li>
-            <li>Redirecting tracking URLs to privacy-friendly alternatives</li>
-          </Box>
-          <Typography variant="body2" paragraph>
-            <strong>How to use:</strong>
-          </Typography>
-          <Box component="ol" sx={{ pl: 2, mb: 2 }}>
-            <li>Enter the source URL pattern (supports wildcards with *)</li>
-            <li>Enter the target URL (must start with http:// or https://)</li>
-            <li>Click "Add Redirect Rule"</li>
-            <li>Click the Save button to apply all redirect rules</li>
-          </Box>
-
-          <Typography variant="body2" paragraph>
-            <strong>Examples:</strong>
-          </Typography>
-          <Box
-            sx={{
-              bgcolor: "grey.50",
-              p: 1,
-              borderRadius: 1,
-              fontSize: "0.875rem",
-              fontFamily: "monospace",
-              mb: 2,
-            }}
-          >
-            <div>old.example.com → https://new.example.com</div>
-            <div>*.ads.com → https://blank.page</div>
-            <div>example.com → https://example.net</div>
-            <div>tracking.site.com → https://privacy.site.com</div>
-          </Box>
-
-          <Typography variant="body2" color="text.secondary">
-            Note: Changes take effect immediately after saving. You can edit or
-            delete rules at any time.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setInfoDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        title="Redirect Manager Feature"
+        description="The Redirect Manager allows you to automatically redirect from one URL to another."
+        features={[
+          "Redirecting old domains to new ones",
+          "Blocking ads by redirecting to blank pages",
+          "Creating custom shortcuts to frequently visited pages",
+          "Redirecting tracking URLs to privacy-friendly alternatives",
+        ]}
+        howToUse={[
+          "Enter the source URL pattern (supports wildcards with *)",
+          "Enter the target URL (must start with http:// or https://)",
+          'Click "Add Redirect Rule"',
+          "Click the Save button to apply all redirect rules",
+        ]}
+        additionalFeatures={[
+          "Support for wildcard patterns (*)",
+          "Bulk add multiple redirect rules",
+          "Edit or delete existing rules",
+          "Real-time validation of URL patterns",
+        ]}
+        note="Changes take effect immediately after saving. You can edit or delete rules at any time."
+      />
 
       {/* Bulk Add Dialog */}
       <Dialog

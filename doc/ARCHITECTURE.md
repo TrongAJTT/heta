@@ -25,19 +25,23 @@ heta/
 │   │   ├── Extractor.jsx      # URL extractor
 │   │   ├── BlockSite.jsx      # Site blocker
 │   │   ├── Redirect.jsx       # URL redirector
+│   │   ├── Instance.jsx       # Instance/Workspace manager ✨ NEW
 │   │   └── ProfileManager.jsx # Profile management
 │   │
 │   ├── models/                # Data models
 │   │   ├── profileModel.js
 │   │   ├── batchUrlModel.js
 │   │   ├── blockDomainModel.js
-│   │   └── redirectRuleModel.js
+│   │   ├── redirectRuleModel.js
+│   │   └── instanceModel.js   # Instance data model ✨ NEW
 │   │
 │   ├── utils/                 # Utility functions
 │   │   ├── storage.js         # Storage abstraction
 │   │   ├── urlUtils.js        # URL utilities
 │   │   ├── profileIO.js       # Profile import/export
 │   │   ├── validation.js      # Validation helpers
+│   │   ├── tabsApi.js         # Chrome Tabs API wrapper ✨ NEW
+│   │   ├── instanceManager.js # Instance business logic ✨ NEW
 │   │   ├── batchUrlGenerator.js
 │   │   ├── blockSite.js
 │   │   ├── domainValidator.js
@@ -49,10 +53,12 @@ heta/
 │   ├── hooks/                 # Custom React hooks
 │   │   ├── useLocalStorage.js # Auto-sync localStorage hook
 │   │   ├── useProfiles.js     # Profile management hook
+│   │   ├── useInstances.js    # Instance management hook ✨ NEW
 │   │   └── index.js
 │   │
 │   ├── constants/             # Constants & configurations
 │   │   ├── app.js             # App-wide constants
+│   │   ├── instance.js        # Instance colors/icons ✨ NEW
 │   │   └── index.js
 │   │
 │   ├── contexts/              # React contexts (future)

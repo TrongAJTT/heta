@@ -15,9 +15,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import DownloadIcon from "@mui/icons-material/Download";
+import InfoIcon from "@mui/icons-material/Info";
+import PersonIcon from "@mui/icons-material/Person";
 import ProfileImportButton from "../components/ProfileImportButton";
 import ProfileBulkActionsMenu from "../components/ProfileBulkActionsMenu";
 import { createProfile, normalizeProfile } from "../models/profileModel";
+import InfoDialog from "../components/InfoDialog";
 import {
   getAllProfiles,
   saveProfile,
@@ -33,6 +36,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
   const [newProfileName, setNewProfileName] = useState("");
   const [newProfileDescription, setNewProfileDescription] = useState("");
   const [showNewProfileInput, setShowNewProfileInput] = useState(false);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
 
   useEffect(() => {
     loadProfiles();
@@ -141,8 +145,29 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography variant="h6">Profile Manager</Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <PersonIcon />
+            <Typography variant="h6">Profile Manager</Typography>
+          </Stack>
           <Stack direction="row" spacing={1}>
+            <Tooltip title="About Profile Manager">
+              <IconButton
+                color="info"
+                size="small"
+                onClick={() => setShowInfoDialog(true)}
+                sx={{
+                  border: "1px solid",
+                  borderColor: "info.main",
+                  borderRadius: 2,
+                  "&:hover": {
+                    borderColor: "info.dark",
+                    bgcolor: "info.lighter",
+                  },
+                }}
+              >
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
             {activeProfileId && (
               <>
                 <Tooltip title="Save current profile">
@@ -150,6 +175,15 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                     color="success"
                     size="small"
                     onClick={handleSaveCurrentProfile}
+                    sx={{
+                      border: "1px solid",
+                      borderColor: "success.main",
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: "success.dark",
+                        bgcolor: "success.lighter",
+                      },
+                    }}
                   >
                     <SaveIcon />
                   </IconButton>
@@ -183,6 +217,15 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                         downloadAnchorNode.click();
                         downloadAnchorNode.remove();
                       }
+                    }}
+                    sx={{
+                      border: "1px solid",
+                      borderColor: "primary.main",
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: "primary.dark",
+                        bgcolor: "primary.lighter",
+                      },
                     }}
                   >
                     <DownloadIcon />
@@ -448,7 +491,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                     color="success"
                     size="small"
                     onClick={handleCreateProfile}
-                    sx={{ flex: 1 }}
+                    sx={{ flex: 1, borderRadius: 2 }}
                   >
                     Create
                   </Button>
@@ -461,6 +504,7 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
                       setNewProfileName("");
                       setNewProfileDescription("");
                     }}
+                    sx={{ borderRadius: 2 }}
                   >
                     Cancel
                   </Button>
@@ -470,6 +514,33 @@ const ProfileManager = ({ currentState, onLoadProfile }) => {
           </Box>
         )}
       </Stack>
+
+      {/* Info Dialog */}
+      <InfoDialog
+        open={showInfoDialog}
+        onClose={() => setShowInfoDialog(false)}
+        title="Profile Manager Feature"
+        description="The Profile Manager allows you to save, load, and manage different configurations of your browser extension settings."
+        features={[
+          "Saving current extension state as profiles",
+          "Switching between different configurations quickly",
+          "Organizing settings for different projects or workflows",
+          "Backing up and restoring extension data",
+        ]}
+        howToUse={[
+          'Click "Create New" to create a new profile',
+          'Use "Save" to save current state to active profile',
+          "Click the load icon to switch to a different profile",
+          'Use "Rename" to change profile name or "Delete" to remove',
+        ]}
+        additionalFeatures={[
+          "Import/export profiles as JSON files",
+          "Bulk operations for managing multiple profiles",
+          "Active profile indicator with visual highlighting",
+          "Automatic timestamp tracking for modifications",
+        ]}
+        note="Profiles contain all your extension settings including redirect rules, blocked domains, batch URLs, and instance data."
+      />
     </div>
   );
 };

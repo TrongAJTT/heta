@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import BatchUrl from "./tabs/BatchUrl";
 import ProfileManager from "./tabs/ProfileManager";
 import Extractor from "./tabs/Extractor";
 import BlockSite from "./tabs/BlockSite";
 import Redirect from "./tabs/Redirect";
+import Instance from "./tabs/Instance";
 import { TABS, TAB_LABELS, APP_NAME, DEFAULT_EXPORT_FORMAT } from "./constants";
 import {
   getActiveTab,
@@ -105,17 +106,6 @@ function App() {
             onStateChange={handleStateChange}
           />
         )}
-        {activeTab === TABS.PROFILES && (
-          <ProfileManager
-            currentState={{
-              ...currentState,
-              exportFormat,
-              blockedDomains,
-              redirectRules,
-            }}
-            onLoadProfile={handleLoadProfile}
-          />
-        )}
         {activeTab === TABS.EXTRACTOR && (
           <Extractor
             exportFormat={exportFormat}
@@ -138,6 +128,18 @@ function App() {
             onRedirectRulesChange={(rules) =>
               handleSettingsChange({ redirectRules: rules })
             }
+          />
+        )}
+        {activeTab === TABS.INSTANCE && <Instance />}
+        {activeTab === TABS.PROFILES && (
+          <ProfileManager
+            currentState={{
+              ...currentState,
+              exportFormat,
+              blockedDomains,
+              redirectRules,
+            }}
+            onLoadProfile={handleLoadProfile}
           />
         )}
       </div>

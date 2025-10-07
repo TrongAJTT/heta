@@ -16,6 +16,7 @@ import { ExportFormatProcessor } from "../utils/exportFormatProcessor";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InfoIcon from "@mui/icons-material/Info";
+import { CONTAINER_HEADER_BG } from "../constants";
 import {
   Dialog,
   DialogTitle,
@@ -132,7 +133,7 @@ const Extractor = ({ exportFormat: initialFormat, onExportFormatChange }) => {
                 alignItems: "center",
                 gap: 2,
                 p: 1,
-                bgcolor: "#fafafa",
+                bgcolor: CONTAINER_HEADER_BG,
                 borderBottom: "1px solid #e0e0e0",
               }}
             >
@@ -199,7 +200,7 @@ const Extractor = ({ exportFormat: initialFormat, onExportFormatChange }) => {
                 p: 1,
                 cursor: "pointer",
                 userSelect: "none",
-                bgcolor: "#fafafa",
+                bgcolor: CONTAINER_HEADER_BG,
                 borderBottom: exportFormatExpanded
                   ? "1px solid #e0e0e0"
                   : "none",
