@@ -7,12 +7,9 @@ import {
   Typography,
   Stack,
   Tooltip,
-  Alert,
 } from "@mui/material";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ClearIcon from "@mui/icons-material/Clear";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
@@ -24,12 +21,10 @@ import {
   BatchUrlGenerator,
   BATCH_URL_CONSTANTS,
 } from "../utils/batchUrlGenerator";
-import {
-  normalizeBatchUrlState,
-  createBatchUrlState,
-} from "../models/batchUrlModel";
+import { normalizeBatchUrlState } from "../models/batchUrlModel";
 import ToastWithProgress from "../components/ToastWithProgress";
-import { CONTAINER_HEADER_BG } from "../constants";
+// PatternImportDialog: Dialog for importing URLs from pattern input
+import PatternImportDialog from "../components/PatternImportDialog";
 
 const BatchUrl = ({ currentState, onStateChange }) => {
   const [urlPattern, setUrlPattern] = useState("");
@@ -43,8 +38,9 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   const [error, setError] = useState("");
   const [currentOpenIndex, setCurrentOpenIndex] = useState(0); // Track progress for "Open Each"
   const [expanded, setExpanded] = useState(true);
+  const [patternDialogOpen, setPatternDialogOpen] = useState(false);
 
-  // Load state from props
+  // Load state from propsS
   useEffect(() => {
     if (currentState && currentState.batchUrl) {
       const normalized = normalizeBatchUrlState(currentState.batchUrl);
@@ -79,48 +75,6 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       }
     }
   }, [currentState]);
-
-  // Save state whenever it changes
-  // Chỉ lưu state khi tạo link (handleGenerateUrls)
-
-  const handleGenerateUrls = () => {
-    setError("");
-    try {
-      const urls = BatchUrlGenerator.generate(urlPattern, startId, endId);
-
-      // Warning for large batches
-      if (urls.length > BATCH_URL_CONSTANTS.WARNING_THRESHOLD) {
-        if (
-          !confirm(
-            `You are about to generate ${urls.length} URLs. Large numbers may slow down your browser. Continue?`
-          )
-        ) {
-          return;
-        }
-      }
-
-      setGeneratedUrls(urls);
-      setProgress(null);
-      setCurrentOpenIndex(0); // Reset progress when generating new URLs
-
-      // Save full state with nested batchUrl
-      onStateChange({
-        ...currentState,
-        batchUrl: {
-          urlPattern,
-          startId,
-          endId,
-          generatedUrls: urls,
-          batchSize,
-          currentOpenIndex: 0,
-          expanded,
-        },
-      });
-    } catch (err) {
-      setError(err.message);
-      // Don't override generatedUrls when there's an error
-    }
-  };
 
   const handleOpenAll = async () => {
     if (generatedUrls.length === 0) return;
@@ -246,178 +200,6 @@ const BatchUrl = ({ currentState, onStateChange }) => {
     <div className="fixed-height-container">
       <Stack spacing={2} sx={{ height: "100%" }}>
         {/* Fixed sections at top */}
-        <Box sx={{ border: "1px solid #e0e0e0", borderRadius: 1 }}>
-          <Box
-            onClick={() => {
-              const newExpanded = !expanded;
-              setExpanded(newExpanded);
-              // Save expanded state
-              onStateChange({
-                ...currentState,
-                batchUrl: {
-                  ...currentState?.batchUrl,
-                  expanded: newExpanded,
-                },
-              });
-            }}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              p: 1,
-              cursor: "pointer",
-              userSelect: "none",
-              bgcolor: CONTAINER_HEADER_BG,
-              borderBottom: expanded ? "1px solid #e0e0e0" : "none",
-            }}
-          >
-            <Typography variant="subtitle1" sx={{ flex: 1 }}>
-              URL Pattern
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                const newExpanded = !expanded;
-                setExpanded(newExpanded);
-                // Save expanded state
-                onStateChange({
-                  ...currentState,
-                  batchUrl: {
-                    ...currentState?.batchUrl,
-                    expanded: newExpanded,
-                  },
-                });
-              }}
-            >
-              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
-          </Box>
-
-          {expanded && (
-            <Box sx={{ p: 2 }}>
-              <Stack direction="row" spacing={1} alignItems="flex-end">
-                <TextField
-                  label="URL Pattern"
-                  variant="outlined"
-                  value={urlPattern}
-                  onChange={(e) => setUrlPattern(e.target.value)}
-                  placeholder={`https://example.com/page/${BATCH_URL_CONSTANTS.ID_PLACEHOLDER}`}
-                  size="small"
-                  sx={{ flex: 1 }}
-                />
-                <Tooltip
-                  title={`Insert ${BATCH_URL_CONSTANTS.ID_PLACEHOLDER} placeholder`}
-                >
-                  <IconButton
-                    color="primary"
-                    size="small"
-                    sx={{
-                      height: 40,
-                      width: 40,
-                      border: "1px solid",
-                      borderColor: "primary.main",
-                      borderRadius: 2,
-                      "&:hover": {
-                        borderColor: "primary.dark",
-                        bgcolor: "primary.lighter",
-                      },
-                    }}
-                    onClick={() => {
-                      const currentValue = urlPattern;
-                      const cursorPos =
-                        document.activeElement?.selectionStart ||
-                        currentValue.length;
-                      const newValue = BatchUrlGenerator.insertIdPlaceholder(
-                        currentValue,
-                        cursorPos
-                      );
-                      setUrlPattern(newValue);
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="bold">
-                      {BATCH_URL_CONSTANTS.ID_PLACEHOLDER}
-                    </Typography>
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-
-              <Stack
-                direction="row"
-                spacing={1}
-                alignItems="flex-end"
-                sx={{ mt: 1.5 }}
-              >
-                <TextField
-                  label="Start ID"
-                  type="number"
-                  value={startId}
-                  onChange={(e) => setStartId(e.target.value)}
-                  placeholder="1"
-                  size="small"
-                  sx={{ flex: 1 }}
-                />
-                <Tooltip title="Shift both IDs to the right">
-                  <IconButton
-                    color="primary"
-                    size="small"
-                    sx={{
-                      height: 40,
-                      width: 40,
-                      border: "1px solid",
-                      borderColor: "primary.main",
-                      borderRadius: 2,
-                      "&:hover": {
-                        borderColor: "primary.dark",
-                        bgcolor: "primary.lighter",
-                      },
-                    }}
-                    onClick={() => {
-                      const s = parseInt(startId);
-                      const e = parseInt(endId);
-                      if (!isNaN(s) && !isNaN(e)) {
-                        const delta = e - s;
-                        setStartId((s + delta + 1).toString());
-                        setEndId((e + delta + 1).toString());
-                      }
-                    }}
-                  >
-                    <ArrowForwardIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <TextField
-                  label="End ID"
-                  type="number"
-                  value={endId}
-                  onChange={(e) => setEndId(e.target.value)}
-                  placeholder="10"
-                  size="small"
-                  sx={{ flex: 1 }}
-                />
-                <Tooltip title="Generate Links">
-                  <IconButton
-                    size="small"
-                    sx={{
-                      height: 40,
-                      width: 40,
-                      borderRadius: 2,
-                      bgcolor: "primary.main",
-                      color: "#fff",
-                      "&:hover": {
-                        bgcolor: "primary.dark",
-                      },
-                    }}
-                    onClick={handleGenerateUrls}
-                  >
-                    <AutoFixHighIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-            </Box>
-          )}
-        </Box>
-
-        {/* Expandable Batch Links section */}
         <Box
           sx={{
             flex: 1,
@@ -430,14 +212,53 @@ const BatchUrl = ({ currentState, onStateChange }) => {
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            mb={1}
+            mb={1.5}
           >
-            <Typography variant="subtitle1">
+            <Typography variant="h6">
               Batch Links ({generatedUrls.length} links)
             </Typography>
-            <Button variant="outlined" size="small" onClick={handleClearUrls}>
-              Clear
-            </Button>
+            <Stack direction="row" spacing={1} sx={{ ml: "auto" }}>
+              <Tooltip title="Import from Pattern">
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={() => setPatternDialogOpen(true)}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "primary.main",
+                    borderRadius: 2,
+                    height: 36,
+                    width: 36,
+                    "&:hover": {
+                      bgcolor: "primary.lighter",
+                      borderColor: "primary.dark",
+                    },
+                  }}
+                >
+                  <AutoFixHighIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Clear links">
+                <IconButton
+                  color="error"
+                  size="small"
+                  onClick={handleClearUrls}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "error.main",
+                    borderRadius: 2,
+                    height: 36,
+                    width: 36,
+                    "&:hover": {
+                      bgcolor: "error.lighter",
+                      borderColor: "error.dark",
+                    },
+                  }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Stack>
 
           <TextField
@@ -539,6 +360,24 @@ const BatchUrl = ({ currentState, onStateChange }) => {
         severity="error"
         duration={5000}
         position="bottom"
+      />
+      {/* Pattern Import Dialog */}
+      <PatternImportDialog
+        open={patternDialogOpen}
+        onClose={() => setPatternDialogOpen(false)}
+        onImport={(urls) => {
+          setGeneratedUrls(urls);
+          setCurrentOpenIndex(0);
+        }}
+        generator={BatchUrlGenerator}
+        initialPattern={urlPattern}
+        initialStartId={startId}
+        initialEndId={endId}
+        onGenerate={({ pattern, startId, endId }) => {
+          setUrlPattern(pattern);
+          setStartId(startId);
+          setEndId(endId);
+        }}
       />
     </div>
   );
