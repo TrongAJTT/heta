@@ -33,6 +33,9 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   const [startId, setStartId] = useState("");
   const [endId, setEndId] = useState("");
   const [generatedUrls, setGeneratedUrls] = useState([]);
+  // Keep a raw text representation so users can freely add new lines with Enter
+  const [urlsText, setUrlsText] = useState("");
+
   const [batchSize, setBatchSize] = useState(
     BATCH_URL_CONSTANTS.DEFAULT_BATCH_SIZE
   );
@@ -41,6 +44,22 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   const [currentOpenIndex, setCurrentOpenIndex] = useState(0); // Track progress for "Open Each"
   const [expanded, setExpanded] = useState(true);
   const [patternDialogOpen, setPatternDialogOpen] = useState(false);
+
+  const saveBatchState = (urlsOverride) => {
+    onStateChange({
+      ...currentState,
+      batchUrl: {
+        urlPattern,
+        startId,
+        endId,
+        generatedUrls:
+          urlsOverride !== undefined ? urlsOverride : generatedUrls,
+        batchSize,
+        currentOpenIndex,
+        expanded,
+      },
+    });
+  };
 
   // Load state from propsS
   useEffect(() => {
@@ -53,6 +72,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
       setStartId(normalized.startId);
       setEndId(normalized.endId);
       setGeneratedUrls(urls);
+      setUrlsText(urls.join("\n"));
       setBatchSize(bs);
       setCurrentOpenIndex(opened);
       setExpanded(
@@ -183,6 +203,9 @@ const BatchUrl = ({ currentState, onStateChange }) => {
   };
 
   const handleGeneratedUrlsChange = (text) => {
+    // Preserve the exact text so Enter creates visible new lines
+    setUrlsText(text);
+    // Parse into URLs for internal logic, ignoring blank lines
     const urls = text
       .split(/\r?\n/)
       .map((u) => u.trim())
@@ -193,6 +216,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
   const handleClearUrls = () => {
     setGeneratedUrls([]);
+    setUrlsText("");
     setProgress(null);
     setError("");
     setCurrentOpenIndex(0);
@@ -265,8 +289,14 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
           <TextField
             multiline
-            value={generatedUrls.join("\n")}
+            value={urlsText}
             onChange={(e) => handleGeneratedUrlsChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                // Save immediately when user confirms a new line/entry
+                saveBatchState();
+              }
+            }}
             fullWidth
             sx={{
               flex: 1,
@@ -395,7 +425,21 @@ const BatchUrl = ({ currentState, onStateChange }) => {
         onClose={() => setPatternDialogOpen(false)}
         onImport={(urls) => {
           setGeneratedUrls(urls);
+          setUrlsText(urls.join("\n"));
           setCurrentOpenIndex(0);
+          // Save immediately when data comes from dialog
+          onStateChange({
+            ...currentState,
+            batchUrl: {
+              urlPattern,
+              startId,
+              endId,
+              generatedUrls: urls,
+              batchSize,
+              currentOpenIndex: 0,
+              expanded,
+            },
+          });
         }}
         generator={BatchUrlGenerator}
         initialPattern={urlPattern}
