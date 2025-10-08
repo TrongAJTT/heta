@@ -12,6 +12,7 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import ClearIcon from "@mui/icons-material/Clear";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   openAllUrls,
   openSingleBatch,
@@ -285,7 +286,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
 
         {/* Fixed controls at bottom */}
         <Box className="fixed-bottom">
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center">
             <TextField
               label="Batch Size"
               type="number"
@@ -316,6 +317,32 @@ const BatchUrl = ({ currentState, onStateChange }) => {
               >
                 Each
               </Button>
+            </Tooltip>
+            <Tooltip title="Reset batch progress">
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setProgress(null);
+                  setCurrentOpenIndex(0);
+                }}
+                disabled={!progress}
+                sx={{
+                  border: "1px solid",
+                  borderColor: progress ? "warning.main" : "grey.300",
+                  borderRadius: 1,
+                  height: 36,
+                  width: 36,
+                  "&:hover": {
+                    borderColor: "warning.dark",
+                    bgcolor: "warning.lighter",
+                  },
+                }}
+              >
+                <RefreshIcon
+                  fontSize="small"
+                  color={progress ? "warning" : "disabled"}
+                />
+              </IconButton>
             </Tooltip>
           </Stack>
 

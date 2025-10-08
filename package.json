@@ -1,7 +1,7 @@
 {
   "name": "Heta - Tab Helper",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.9.0",
   "type": "module",
   "description": "Tab helper utilities for browser that may match your needs: batch URL generator, URL extractor, site blocker, URL redirect rules, multi-instance workspace switcher and profile manager.",
   "author": "TrongAJTT",

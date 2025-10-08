@@ -79,14 +79,41 @@ const PatternImportDialog = ({
       <DialogTitle>Import From Pattern</DialogTitle>
       <DialogContent sx={{ pt: 1.5, pb: 0.5, overflow: "visible" }}>
         <Stack spacing={2}>
-          <TextField
-            label="URL Pattern"
-            value={pattern}
-            onChange={(e) => setPattern(e.target.value)}
-            placeholder="https://example.com/{id}"
-            size="small"
-            fullWidth
-          />
+          <Stack direction="row" spacing={1} alignItems="flex-end">
+            <TextField
+              label="URL Pattern"
+              value={pattern}
+              onChange={(e) => setPattern(e.target.value)}
+              placeholder="https://example.com/{id}"
+              size="small"
+              fullWidth
+            />
+            <Tooltip title="Insert {id}">
+              <IconButton
+                size="small"
+                sx={{
+                  height: 40,
+                  width: 40,
+                  border: "1px solid",
+                  borderColor: "primary.main",
+                  borderRadius: 1,
+                  "&:hover": {
+                    borderColor: "primary.dark",
+                    bgcolor: "primary.lighter",
+                  },
+                }}
+                onClick={() => {
+                  if (!pattern.includes("{id}")) {
+                    setPattern(pattern + "{id}");
+                  }
+                }}
+              >
+                <Typography variant="body2" fontWeight="bold" color="primary">
+                  ID
+                </Typography>
+              </IconButton>
+            </Tooltip>
+          </Stack>
           <Stack direction="row" spacing={1} alignItems="flex-end">
             <TextField
               label="Start ID"
@@ -100,11 +127,11 @@ const PatternImportDialog = ({
               <IconButton
                 size="small"
                 sx={{
-                  height: 36,
-                  width: 36,
+                  height: 40,
+                  width: 40,
                   border: "1px solid",
                   borderColor: "primary.main",
-                  borderRadius: 2,
+                  borderRadius: 1,
                   "&:hover": {
                     borderColor: "primary.dark",
                     bgcolor: "primary.lighter",
@@ -135,9 +162,9 @@ const PatternImportDialog = ({
               <IconButton
                 size="small"
                 sx={{
-                  height: 36,
-                  width: 36,
-                  borderRadius: 2,
+                  height: 40,
+                  width: 40,
+                  borderRadius: 1,
                   bgcolor: "primary.main",
                   color: "#fff",
                   "&:hover": { bgcolor: "primary.dark" },

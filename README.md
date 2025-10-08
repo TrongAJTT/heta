@@ -1,4 +1,4 @@
-# <img src="public/icon48.svg" alt="Heta" width="24" height="24" style="vertical-align: middle;"> Heta - Tab Helper
+# <img src="public/icon48.png" alt="Heta" width="24" height="24" style="vertical-align: middle;"> Heta - Tab Helper
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
@@ -6,160 +6,135 @@
 [![Vite](https://img.shields.io/badge/Vite-5.0.8-646cff.svg)](https://vitejs.dev/)
 [![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-4285f4.svg)](https://developer.chrome.com/docs/extensions/mv3/)
 
-> Trợ thủ quản lý tab và URL cho trình duyệt: tạo/mở theo lô (batch), trích xuất URL, chặn domain, chuyển hướng, lưu cấu hình theo Profile. Xây dựng trên React + Vite (Manifest V3), tối ưu cho hiệu năng và trải nghiệm đơn giản.
+> A simple browser extension for managing tabs and URLs: batch creation, URL extraction, domain blocking, redirects, and profile-based configuration management. Built with React + Vite (Manifest V3) for optimal performance and simplicity.
 
-## ✨ Tính năng
+## ✨ Features
 
-### 1) Batch URL
+### 🔗 Batch URL Generator
 
-- Tạo nhiều URL từ pattern với `{id}` hoặc `{idp}` (zero-pad)
-- Start/End ID linh hoạt, kiểm tra lỗi rõ ràng
-- Mở tất cả hoặc mở theo batch size; có hiển thị tiến trình gọn nhẹ
+- Generate multiple URLs from patterns using `{id}` or `{idp}` (zero-padded)
+- Flexible start/end ID ranges with clear error handling
+- Open all URLs or process in batches with progress tracking
 
-### 2) Extractor (Trích xuất URL)
+### 📋 URL Extractor
 
-- Liệt kê tab của cửa sổ hiện tại, chọn/bỏ chọn nhanh, filter theo URL
-- Xuất theo Template Format có tham số: `<id>`, `<idp>`, `<url>`, `<name>`
-- Preview dữ liệu theo template
+- List current window tabs with quick select/deselect and URL filtering
+- Export with customizable templates: `<id>`, `<idp>`, `<url>`, `<name>`
+- Real-time preview of formatted output
 
-### 3) Block Site (Chặn domain)
+### 🚫 Domain Blocker
 
-- Thêm/sửa/xóa domain chặn, lưu và áp dụng bằng `declarativeNetRequest`
-- Thêm hàng loạt (Bulk Add) với 1 domain mỗi dòng; hiển thị kết quả thành công/thất bại và hỗ trợ Copy
+- Add/edit/remove blocked domains using `declarativeNetRequest`
+- Bulk add domains (one per line) with success/failure feedback
+- Copy results for easy sharing
 
-### 4) Redirect (Chuyển hướng)
+### 🔄 URL Redirects
 
-- Tạo luật chuyển hướng từ `fromUrl` → `toUrl` (hỗ trợ wildcard ở `fromUrl`)
-- Thêm hàng loạt: mỗi dòng gồm 2 phần cách nhau bởi khoảng trắng `fromUrl toUrl`
-- Hiển thị kết quả thêm hàng loạt, cho phép Copy
+- Create redirect rules from `fromUrl` → `toUrl` (supports wildcards)
+- Bulk import: each line contains `fromUrl toUrl` separated by space
+- Visual feedback for bulk operations with copy functionality
 
-### 5) Profiles (Lưu cấu hình)
+### 👤 Profile Management
 
-- Tạo/nạp/xóa/đổi tên Profile; đánh dấu Profile đang Active
-- Import/Export JSON (hỗ trợ nhiều profile 1 lần)
-- Mỗi Profile hiện lưu:
-  - Batch URL state (pattern, start/end, generated, batch size,...)
-  - Extractor Export Format
-  - Danh sách Block Site (blocked domains)
-  - Danh sách Redirect Rules
-  - Mô tả Profile (description)
+- Create/load/delete/rename profiles with active status indicators
+- Import/Export JSON (supports multiple profiles at once)
+- Each profile stores all states of these above features.
 
-### 6) Lưu trữ và đồng bộ
+## 📸 Screenshots
 
-- Lưu vào Chrome Storage; tự động khôi phục trạng thái và tab đang mở lần gần nhất
+<div align="center">
+  <img src="https://www.trongajtt.com/apps/heta/1-batch.png" alt="HetaFeature" style="width:45%;">
+  <img src="https://www.trongajtt.com/apps/heta/2-extract.png" alt="HetaFeature" style="width:45%;">
+  <img src="https://www.trongajtt.com/apps/heta/3-blocker.png" alt="HetaFeature" style="width:45%;">
+  <img src="https://www.trongajtt.com/apps/heta/4-redirect.png" alt="HetaFeature" style="width:45%;">
+  <img src="https://www.trongajtt.com/apps/heta/5-instance.png" alt="HetaFeature" style="width:45%;">
+  <img src="https://www.trongajtt.com/apps/heta/6-profile.png" alt="HetaFeature" style="width:45%;">
+</div>
 
-## 🛠️ Cài đặt Development
+## 🛠️ Installation
 
-### 1. Cài đặt dependencies
+### Development Setup
 
-```bash
-npm install
-```
+1. **Install dependencies**
 
-### 2. Build extension
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run build
-```
+2. **Build extension**
 
-Build sẽ tạo thư mục `dist` chứa extension production-ready.
+   ```bash
+   npm run build
+   ```
 
-### 3. Load extension vào browser
+   This creates a `dist` folder with production-ready extension files.
 
-**Chrome/Edge:**
+3. **Load extension in browser**
 
-1. Mở `chrome://extensions/` (hoặc `edge://extensions/`)
-2. Bật **Developer mode**
-3. Click **Load unpacked**
-4. Chọn thư mục `dist`
+   **Chrome/Edge:**
 
-Extension sẽ xuất hiện với icon SVG của app.
+   1. Open `chrome://extensions/` (or `edge://extensions/`)
+   2. Enable **Developer mode**
+   3. Click **Load unpacked**
+   4. Select the `dist` folder
 
-## 🎯 Sử dụng nhanh
+## 🎯 Quick Start
 
-1. Batch: nhập pattern `https://example.com/page/{id}`, nhập Start/End, tạo và mở theo batch
-2. Extractor: chọn các tab, chỉnh `Export Format` rồi Copy/Export
-3. Block Site: nhập domain hoặc dùng nút “Add multiple” để thêm hàng loạt, Save để áp dụng
-4. Redirect: nhập rule hoặc Import hàng loạt, Save để áp dụng
-5. Profiles: tạo Profile (có mô tả), Save Current để lưu tất cả cấu hình hiện tại; Import/Export JSON
+1. **Batch URLs**: Enter pattern like `https://example.com/page/{id}`, set start/end IDs, generate and open in batches
+2. **Extractor**: Select tabs, customize export format, then copy/export
+3. **Block Sites**: Add domains individually or use "Add multiple" for bulk operations, save to apply
+4. **Redirects**: Create rules or import bulk, save to apply
+5. **Profiles**: Create profiles with descriptions, save current state, import/export JSON
 
-## 📖 Documentation Index
-
-**[📚 Complete Documentation Index](./DOCS_INDEX.md)** - Tất cả tài liệu ở một nơi
-
-### Core Documentation
-
-- **[🚀 QUICKSTART.md](./QUICKSTART.md)** - Bắt đầu trong 5 phút
-- **[📘 USAGE.md](./USAGE.md)** - Hướng dẫn chi tiết
-- **[💡 EXAMPLES.md](./EXAMPLES.md)** - Ví dụ thực tế & troubleshooting
-- **[✅ CHECKLIST.md](./CHECKLIST.md)** - Installation verification checklist
-
-### 🔧 Technical Documentation
-
-- **[🏗️ ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture
-- **[BUILD.md](./BUILD.md)** - Build & deployment guide
-- **[🧪 TEST_CASES.md](./TEST_CASES.md)** - Test cases đầy đủ
-
-### 📝 Project Info
-
-- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Project summary
-- **[📝 CHANGELOG.md](./CHANGELOG.md)** - Version history
-- **[🤝 CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
-
-### Quick Start
-
-1. Click icon extension trên toolbar
-2. Batch URL: điền pattern và mở theo nhu cầu
-3. Extractor/Block/Redirect: cấu hình và lưu vào Profile nếu cần
-
-## 📂 Cấu trúc Project
+## 📂 Project Structure
 
 ```
 heta/
 ├── public/
 │   ├── manifest.json          # Extension manifest
-│   ├── icon16.png             # Icon 16x16
-│   ├── icon48.png             # Icon 48x48
-│   └── icon128.png            # Icon 128x128
+│   ├── icon16.png             # 16x16 icon
+│   ├── icon48.png             # 48x48 icon
+│   └── icon128.png            # 128x128 icon
 ├── src/
-│   ├── tabs/                  # Tabs/Screens
-│   │   ├── BatchUrl.jsx       # Batch URL
-│   │   ├── Extractor.jsx      # Trích xuất URL + Export Format
-│   │   ├── BlockSite.jsx      # Chặn domain + Bulk Add
-│   │   ├── Redirect.jsx       # Redirect rules + Bulk Add
-│   │   └── ProfileManager.jsx # Quản lý Profiles
-│   ├── components/            # Reusable UI pieces
-│   │   ├── ProfileImportButton.jsx
-│   │   └── ProfileBulkActionsMenu.jsx
-│   ├── utils/
+│   ├── tabs/                  # Main screens
+│   │   ├── BatchUrl.jsx       # Batch URL generator
+│   │   ├── Extractor.jsx      # URL extraction & export
+│   │   ├── BlockSite.jsx      # Domain blocking & bulk add
+│   │   ├── Redirect.jsx       # Redirect rules & bulk add
+│   │   ├── Instance.jsx       # Instance management
+│   │   └── ProfileManager.jsx # Profile management
+│   ├── components/            # Reusable UI components
+│   │   ├── ExportFormatDialog.jsx
+│   │   ├── ToastWithProgress.jsx
+│   │   └── ...
+│   ├── utils/                 # Utility functions
 │   │   ├── storage.js         # Chrome Storage wrapper
-│   │   ├── urlUtils.js        # URL utilities (batch open)
-│   │   └── profileIO.js       # Import/Export helpers
+│   │   ├── urlUtils.js        # URL utilities
+│   │   └── ...
+│   ├── constants/             # App constants
+│   │   └── ui.js              # UI constants
 │   ├── App.jsx                # Main app component
 │   ├── App.css                # Styles
-│   ├── main.jsx               # Entry point
-│   └── index.css              # Global styles
-├── index.html                 # HTML template
+│   └── main.jsx               # Entry point
+├── dist/                      # Built extension files
 ├── vite.config.js             # Vite configuration
-├── package.json
-├── README.md
-└── USAGE.md                   # Detailed usage guide
+└── package.json
 ```
 
 ## 🔧 Development
 
-### Development mode với hot reload
+### Development Mode
 
 ```bash
 npm run dev
 ```
 
-Sau khi thay đổi code:
+After code changes:
 
-1. Build lại: `npm run build`
-2. Reload extension trong browser
+1. Rebuild: `npm run build`
+2. Reload extension in browser
 
-### Build Production
+### Production Build
 
 ```bash
 npm run build
@@ -171,30 +146,57 @@ npm run build
 - **Vite 5** - Build tool & dev server
 - **Chrome Extension Manifest V3** - Extension platform
 - **Chrome Storage API** - Local storage
-- **CSS3** - Styling với gradients và transitions
+- **Material-UI** - Component library
+- **CSS3** - Styling with gradients and transitions
 
-## 📝 Đã hoàn thiện
+## 🚀 Practical Use Cases for Daily Uses
 
-✅ Generate Batch URLs từ pattern `{id}`/`{idp}` và mở theo batch
-✅ Extractor với Export Format, Preview
-✅ Block Site + Bulk Add, áp dụng với `declarativeNetRequest`
-✅ Redirect + Bulk Add, hỗ trợ wildcard ở `fromUrl`
-✅ Profiles lưu đầy đủ: Batch + Export Format + Block + Redirect + Description
-✅ Import/Export Profiles (JSON), Auto-save state
-✅ UI hiện đại, hiệu năng tốt; xử lý lỗi rõ ràng
+### 1. Workspace Management
 
-## 🚀 Ví dụ Use Cases
+| Core Capability            | Feature Name                    | Practical Use Case                                                                                                                                                         |
+| :------------------------- | :------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Instance & Profile Manager | Separate Life & Work            | Create separate profiles: "Work" (only Slack, Jira, company Gmail) and "Personal" (YouTube, Facebook, News). Switch between them with one click to eliminate distractions. |
+| Instance Manager           | Restore Study/Research Sessions | After searching for references for a project, Save all 15 tabs as "Research Project A". The next day, simply Restore that Instance to resume where you left off.           |
 
-1. **Testing nhiều pages**: Mở nhiều trang sản phẩm, articles, user profiles
-2. **API testing**: Kiểm tra nhiều API endpoints với IDs khác nhau
-3. **Data scraping**: Mở nhiều pages để thu thập dữ liệu
-4. **QA Testing**: Test nhiều URLs với parameters khác nhau
-5. **Batch operations**: Bất kỳ tác vụ nào cần mở nhiều URLs theo pattern
+### 2. Focus Control
+
+| Core Capability  | Feature Name       | Practical Use Case                                                                                                                                                                 |
+| :--------------- | :----------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain Blocker   | Deep Work Mode     | Create a "Deep Work" profile and add Block rules for facebook.com, tiktok.com, youtube.com. When this profile is active, access to these sites is blocked so you can stay focused. |
+| Redirect Manager | Force Better Tools | Add a redirect rule: typing `a.b` (your own shortcut) in the address bar automatically opens your `app.asana.com/project-dashboard`.                                               |
+
+### 3. Automation
+
+| Core Capability     | Feature Name                    | Practical Use Case                                                                                                                                                                                                 |
+| :------------------ | :------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Batch URL Generator | Bulk Product Price Check        | Frequently compare prices across e-commerce sites. Use a pattern with changing product IDs to generate links for 10 different websites, then open them in batches (Batch Size) to avoid overloading your computer. |
+| Batch URL Generator | Watch Episodes/Lessons by Index | Need to open episodes 5–12 of a series or an online course? Enter a pattern with the episode ID to generate the exact URLs for all the episodes you need.                                                          |
+
+### 4. Quick Data Collection
+
+| Core Capability | Feature Name               | Practical Use Case                                                                                                                                                                              |
+| :-------------- | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| URL Extractor   | Build a Reading List       | While browsing you find 20 articles/blog posts to read later. Use the Extractor to quickly capture all URLs with Page Titles and export a clean Markdown list to paste into Notion or Evernote. |
+| URL Extractor   | Capture Project References | After finishing a project, use the Extractor to collect all opened reference links in the Chrome window in the format: "[Page Title] - URL" so you can drop them into your documentation.       |
+
+## 💝 Support & Donate
+
+If you find Heta useful, please consider supporting its development:
+
+### ☕ Buy me a coffee
+
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-6e5494?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/TrongAJTT)
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/trongajtt)
 
 ## 📄 License
 
-MIT
+MIT License - see [LICENSE](./LICENSE) file for details.
 
-## 👨‍💻 Tác giả
+## 👨‍💻 Author
 
-Developed with ❤️
+Developed with ❤️ by [TrongAJTT](https://github.com/TrongAJTT)
+
+---
+
+**Made with React + Vite + Chrome Extension Manifest V3**
