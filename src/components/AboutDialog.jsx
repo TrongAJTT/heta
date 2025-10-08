@@ -123,6 +123,39 @@ const AboutDialog = ({ open, onClose }) => {
 
           <Divider />
 
+          {/* Links */}
+          <Box>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ mb: 0.5 }}
+            >
+              <CodeIcon color="primary" />
+              <Typography variant="subtitle1" fontWeight={600}>
+                Links
+              </Typography>
+            </Stack>
+            <Link
+              href={links.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                textDecoration: "none",
+                color: "primary.main",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              <GitHubIcon />
+              <Typography variant="body2">View on GitHub</Typography>
+            </Link>
+          </Box>
+
+          <Divider />
+
           {/* Donate */}
           <Box>
             <Stack
@@ -177,39 +210,6 @@ const AboutDialog = ({ open, onClose }) => {
                 Buy Coffee
               </Button>
             </Stack>
-          </Box>
-
-          <Divider />
-
-          {/* Links */}
-          <Box>
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-              sx={{ mb: 0.5 }}
-            >
-              <CodeIcon color="primary" />
-              <Typography variant="subtitle1" fontWeight={600}>
-                Links
-              </Typography>
-            </Stack>
-            <Link
-              href={links.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                textDecoration: "none",
-                color: "primary.main",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              <GitHubIcon />
-              <Typography variant="body2">View on GitHub</Typography>
-            </Link>
           </Box>
         </Stack>
       </DialogContent>

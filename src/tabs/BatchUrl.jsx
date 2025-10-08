@@ -23,6 +23,7 @@ import {
 } from "../utils/batchUrlGenerator";
 import { normalizeBatchUrlState } from "../models/batchUrlModel";
 import ToastWithProgress from "../components/ToastWithProgress";
+import { TOAST_DURATION } from "../constants/ui";
 // PatternImportDialog: Dialog for importing URLs from pattern input
 import PatternImportDialog from "../components/PatternImportDialog";
 
@@ -358,7 +359,7 @@ const BatchUrl = ({ currentState, onStateChange }) => {
         onClose={() => setError("")}
         message={error}
         severity="error"
-        duration={5000}
+        duration={TOAST_DURATION}
         position="bottom"
       />
       {/* Pattern Import Dialog */}

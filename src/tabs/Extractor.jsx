@@ -18,6 +18,7 @@ import ExportFormatDialog from "../components/ExportFormatDialog";
 import ToastWithProgress from "../components/ToastWithProgress";
 import { queryCurrentWindowHttpTabs, downloadTextFile } from "../utils/tabs";
 import { ExportFormatProcessor } from "../utils/exportFormatProcessor";
+import { TOAST_DURATION } from "../constants/ui";
 
 // Data access and file operations are moved to utils/tabs.js
 
@@ -316,7 +317,7 @@ const Extractor = ({ exportFormat: initialFormat, onExportFormatChange }) => {
         onClose={() => setCopyToastOpen(false)}
         message="Content copied to clipboard"
         severity="success"
-        autoHideDuration={3000}
+        duration={TOAST_DURATION}
       />
     </>
   );

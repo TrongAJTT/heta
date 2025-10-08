@@ -34,6 +34,7 @@ import { validateInstance } from "../models/instanceModel";
 import InfoDialog from "../components/InfoDialog";
 import OpenInstanceDialog from "../components/OpenInstanceDialog";
 import ToastWithProgress from "../components/ToastWithProgress";
+import { TOAST_DURATION } from "../constants/ui";
 
 const Instance = () => {
   const {
@@ -385,7 +386,7 @@ const Instance = () => {
           onClose={clearMessages}
           message={successMessage}
           severity="success"
-          duration={5000}
+          duration={TOAST_DURATION}
           position="bottom"
         />
         <ToastWithProgress
@@ -393,7 +394,7 @@ const Instance = () => {
           onClose={clearMessages}
           message={errorMessage || error}
           severity="error"
-          duration={5000}
+          duration={TOAST_DURATION}
           position="bottom"
         />
 
@@ -639,7 +640,13 @@ const Instance = () => {
                 <Typography variant="subtitle2" gutterBottom>
                   Color
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, 36px)",
+                    gap: 1,
+                  }}
+                >
                   {INSTANCE_COLORS.map((color) => (
                     <Box
                       key={color}
@@ -650,24 +657,24 @@ const Instance = () => {
                         })
                       }
                       sx={{
-                        width: 40,
-                        height: 40,
+                        width: 36,
+                        height: 36,
                         borderRadius: 1,
                         bgcolor: color,
                         cursor: "pointer",
-                        border: "3px solid",
+                        border: "2px solid",
                         borderColor:
                           editingInstance.color === color
-                            ? "primary.main"
+                            ? "text.primary"
                             : "transparent",
-                        transition: "all 0.2s",
+                        transition: "all 0.15s",
                         "&:hover": {
-                          transform: "scale(1.1)",
+                          transform: "scale(1.06)",
                         },
                       }}
                     />
                   ))}
-                </Stack>
+                </Box>
               </Box>
             </Stack>
           )}

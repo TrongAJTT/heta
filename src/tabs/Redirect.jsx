@@ -35,6 +35,7 @@ import {
 } from "../models/redirectRuleModel";
 import InfoDialog from "../components/InfoDialog";
 import ToastWithProgress from "../components/ToastWithProgress";
+import { TOAST_DURATION } from "../constants/ui";
 
 const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
   const [redirectRules, setRedirectRules] = useState(initialRules || []);
@@ -538,7 +539,7 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
         onClose={() => setError("")}
         message={error}
         severity="error"
-        duration={5000}
+        duration={TOAST_DURATION}
         position="bottom"
       />
       <ToastWithProgress
@@ -546,7 +547,7 @@ const Redirect = ({ redirectRules: initialRules, onRedirectRulesChange }) => {
         onClose={() => setSuccessMessage("")}
         message={successMessage}
         severity="success"
-        duration={5000}
+        duration={TOAST_DURATION}
         position="bottom"
       />
 
